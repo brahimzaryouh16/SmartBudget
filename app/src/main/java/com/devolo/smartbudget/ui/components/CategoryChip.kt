@@ -1,12 +1,12 @@
 package com.devolo.smartbudget.ui.components
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -20,26 +20,29 @@ fun CategoryChip(
     name: String,
     isSelected: Boolean,
     onClick: () -> Unit,
+    color: Color? = null,
+    modifier: Modifier = Modifier
 ) {
-    val chipBackground = if (isSelected) Slate900 else Color.White
-    val chipTextColor = if (isSelected) Color.White else Slate500
-    val chipBorderColor = if (isSelected) Slate900 else Slate100
+    val bgColor = when {
+        isSelected && color != null -> color
+        isSelected -> Slate700
+        else -> Color.White
+    }
+    val textColor = if (isSelected) Color.White else Slate500
 
-    Surface(
-        modifier = Modifier
+    Box(
+        modifier = modifier
             .clip(RoundedCornerShape(20.dp))
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(20.dp),
-        color = chipBackground,
-        border = BorderStroke(1.dp, chipBorderColor),
+            .background(bgColor)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        contentAlignment = Alignment.Center
     ) {
         Text(
             text = name,
-            color = chipTextColor,
-            fontSize = 13.sp,
-            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
-            maxLines = 1,
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
+            fontSize = 12.sp,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+            color = textColor
         )
     }
 }

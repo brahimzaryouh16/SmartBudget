@@ -18,8 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.devolo.smartbudget.ui.theme.Emerald600
-import com.devolo.smartbudget.ui.theme.Emerald500
+import com.devolo.smartbudget.ui.theme.*
 import java.util.Locale
 
 @Composable
@@ -28,12 +27,18 @@ fun BudgetCard(
     expenseCount: Int,
     currency: String = "MAD",
     previousTotal: Double = 0.0,
+    budgetLimit: Double = 0.0,
+    budgetProgress: Float = 0f,
+    isOverBudget: Boolean = false,
     modifier: Modifier = Modifier
 ) {
+    val bgColor = if (isOverBudget) Danger else Emerald600
+    val bgGradientEnd = if (isOverBudget) Danger else Emerald500
+
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.cardColors(containerColor = Emerald600),
+        colors = CardDefaults.cardColors(containerColor = bgColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Box(
@@ -41,7 +46,7 @@ fun BudgetCard(
                 .fillMaxWidth()
                 .background(
                     Brush.verticalGradient(
-                        colors = listOf(Emerald600, Emerald500)
+                        colors = listOf(bgColor, bgGradientEnd)
                     )
                 )
         ) {
@@ -60,12 +65,25 @@ fun BudgetCard(
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp, vertical = 22.dp)
             ) {
-                Text(
-                    text = "DÉPENSES TOTALES",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.75f),
-                    letterSpacing = 1.sp
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "DÉPENSES TOTALES",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.75f),
+                        letterSpacing = 1.sp
+                    )
+                    if (budgetLimit > 0) {
+                        Text(
+                            text = "${String.format(Locale.getDefault(), "%.0f", totalAmount)} / ${String.format(Locale.getDefault(), "%.0f", budgetLimit)} $currency",
+                            fontSize = 10.sp,
+                            color = Color.White.copy(alpha = 0.65f)
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(4.dp))
 
@@ -88,6 +106,25 @@ fun BudgetCard(
                     )
                 }
 
+                if (budgetLimit > 0) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(6.dp)
+                            .clip(RoundedCornerShape(3.dp))
+                            .background(Color.White.copy(alpha = 0.25f))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(budgetProgress)
+                                .fillMaxHeight()
+                                .clip(RoundedCornerShape(3.dp))
+                                .background(Color.White)
+                        )
+                    }
+                }
+
                 if (previousTotal > 0) {
                     val percentageChange = ((totalAmount - previousTotal) / previousTotal * 100).toInt()
                     val isIncrease = percentageChange > 0
@@ -107,7 +144,7 @@ fun BudgetCard(
                             ) {
                                 Icon(
                                     imageVector = iconImage,
-                                    contentDescription = null,
+                                    contentDescription = if (isIncrease) "Augmentation" else "Diminution",
                                     modifier = Modifier.size(12.dp),
                                     tint = Color.White
                                 )
@@ -127,6 +164,15 @@ fun BudgetCard(
                             color = Color.White.copy(alpha = 0.65f)
                         )
                     }
+                }
+
+                if (expenseCount > 0) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "$expenseCount dépense${if (expenseCount > 1) "s" else ""}",
+                        fontSize = 10.sp,
+                        color = Color.White.copy(alpha = 0.55f)
+                    )
                 }
             }
         }

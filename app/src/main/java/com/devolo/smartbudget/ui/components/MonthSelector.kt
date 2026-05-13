@@ -10,7 +10,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -34,7 +33,7 @@ fun MonthSelector(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        MonthButton(icon = Icons.Default.ChevronLeft, onClick = { onMonthChange(-1) })
+        MonthButton(icon = Icons.Default.ChevronLeft, contentDesc = "Mois précédent", onClick = { onMonthChange(-1) })
 
         Text(
             text = monthFormat.format(currentMonth.time)
@@ -44,13 +43,14 @@ fun MonthSelector(
             color = Slate700
         )
 
-        MonthButton(icon = Icons.Default.ChevronRight, onClick = { onMonthChange(1) })
+        MonthButton(icon = Icons.Default.ChevronRight, contentDesc = "Mois suivant", onClick = { onMonthChange(1) })
     }
 }
 
 @Composable
 private fun MonthButton(
     icon: ImageVector,
+    contentDesc: String,
     onClick: () -> Unit
 ) {
     Surface(
@@ -58,7 +58,7 @@ private fun MonthButton(
             .size(44.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(14.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surface,
         border = androidx.compose.foundation.BorderStroke(1.dp, Slate100),
         tonalElevation = 0.dp,
         shadowElevation = 0.dp
@@ -66,7 +66,7 @@ private fun MonthButton(
         Box(contentAlignment = Alignment.Center) {
             Icon(
                 imageVector = icon,
-                contentDescription = null,
+                contentDescription = contentDesc,
                 modifier = Modifier.size(22.dp),
                 tint = Slate500
             )

@@ -21,7 +21,7 @@ abstract class SmartBudgetDatabase : RoomDatabase() {
                     context.applicationContext,
                     SmartBudgetDatabase::class.java,
                     "smartbudget_database"
-                ).build()
+                ).fallbackToDestructiveMigration().build()
                 INSTANCE = instance
                 instance
             }

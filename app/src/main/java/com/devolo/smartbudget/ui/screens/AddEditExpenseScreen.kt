@@ -1,10 +1,8 @@
 package com.devolo.smartbudget.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -12,9 +10,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,7 +23,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.devolo.smartbudget.data.model.Category
@@ -37,6 +32,7 @@ import com.devolo.smartbudget.ui.viewmodel.ExpenseViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditExpenseScreen(
     viewModel: ExpenseViewModel,
@@ -44,9 +40,10 @@ fun AddEditExpenseScreen(
     onNavigateBack: () -> Unit
 ) {
     val categories by viewModel.categories.collectAsState()
+    val currency by viewModel.currency.collectAsState()
     val focusManager = LocalFocusManager.current
 
-    var amount by remember { mutableStateOf("0.00") }
+    var amount by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
     var selectedCategoryId by remember { mutableStateOf<Long?>(null) }
     var date by remember { mutableStateOf(System.currentTimeMillis()) }
@@ -55,12 +52,29 @@ fun AddEditExpenseScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var amountError by remember { mutableStateOf<String?>(null) }
     var categoryError by remember { mutableStateOf<String?>(null) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    var showUnsavedDialog by remember { mutableStateOf(false) }
+
+    val hasUnsavedChanges by remember {
+        derivedStateOf {
+            val amountValue = amount.replace(",", ".").toDoubleOrNull() ?: 0.0
+            val isNew = expenseId == 0L
+            val existingAmount = existingExpense?.let { String.format(Locale.US, "%.2f", it.amount) } ?: ""
+            amount.isNotEmpty() || note.isNotEmpty() ||
+                (isNew && selectedCategoryId != null) ||
+                (!isNew && (amount != existingAmount || note != (existingExpense?.note ?: "")))
+        }
+    }
+
+    BackHandler(enabled = hasUnsavedChanges) {
+        showUnsavedDialog = true
+    }
 
     LaunchedEffect(expenseId) {
         if (expenseId != 0L) {
             existingExpense = viewModel.getExpenseById(expenseId)
             existingExpense?.let {
-                amount = String.format(Locale.getDefault(), "%.2f", it.amount)
+                amount = String.format(Locale.US, "%.2f", it.amount)
                 note = it.note ?: ""
                 selectedCategoryId = it.categoryId
                 date = it.date
@@ -70,8 +84,32 @@ fun AddEditExpenseScreen(
         }
     }
 
+    if (showUnsavedDialog) {
+        AlertDialog(
+            onDismissRequest = { showUnsavedDialog = false },
+            title = { Text("Modifications non enregistrées", fontWeight = FontWeight.Bold) },
+            text = { Text("Voulez-vous vraiment quitter ? Vos modifications seront perdues.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showUnsavedDialog = false
+                        onNavigateBack()
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = Danger)
+                ) {
+                    Text("Quitter", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showUnsavedDialog = false }) {
+                    Text("Continuer")
+                }
+            }
+        )
+    }
+
     Scaffold(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             Row(
                 modifier = Modifier
@@ -83,7 +121,10 @@ fun AddEditExpenseScreen(
                 Surface(
                     modifier = Modifier
                         .size(40.dp)
-                        .clickable(onClick = onNavigateBack),
+                        .clickable(onClick = {
+                            if (hasUnsavedChanges) showUnsavedDialog = true
+                            else onNavigateBack()
+                        }),
                     shape = RoundedCornerShape(12.dp),
                     color = Slate50
                 ) {
@@ -130,7 +171,7 @@ fun AddEditExpenseScreen(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "MAD",
+                        text = currency,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         color = Slate300
@@ -138,7 +179,7 @@ fun AddEditExpenseScreen(
                     Spacer(modifier = Modifier.width(8.dp))
                     BasicTextField(
                         value = amount,
-                        onValueChange = { amount = it },
+                        onValueChange = { sanitizeAmountInput(it, amount)?.let { amount = it } },
                         textStyle = TextStyle(
                             fontSize = 38.sp,
                             fontWeight = FontWeight.Bold,
@@ -177,25 +218,47 @@ fun AddEditExpenseScreen(
                         letterSpacing = 1.sp
                     )
                     Spacer(modifier = Modifier.height(10.dp))
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        val rows = categories.chunked(2)
-                        rows.forEach { row ->
+                    if (categories.isEmpty()) {
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(14.dp),
+                            color = Amber50
+                        ) {
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                row.forEach { category ->
-                                    CategoryOption(
-                                        category = category,
-                                        isSelected = selectedCategoryId == category.id,
-                                        onClick = { selectedCategoryId = category.id },
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                }
-                                if (row.size < 2) {
-                                    Spacer(modifier = Modifier.weight(1f))
+                                Icon(Icons.Default.Info, contentDescription = null, tint = Amber600, modifier = Modifier.size(20.dp))
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = "Aucune catégorie active. Activez-en dans les Réglages.",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = Slate700
+                                )
+                            }
+                        }
+                    } else {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            val rows = categories.chunked(2)
+                            rows.forEach { row ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    row.forEach { category ->
+                                        CategoryOption(
+                                            category = category,
+                                            isSelected = selectedCategoryId == category.id,
+                                            onClick = { selectedCategoryId = category.id },
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                    }
+                                    if (row.size < 2) {
+                                        Spacer(modifier = Modifier.weight(1f))
+                                    }
                                 }
                             }
                         }
@@ -228,8 +291,13 @@ fun AddEditExpenseScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = Slate400, modifier = Modifier.size(18.dp))
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { showDatePicker = true },
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(Icons.Default.CalendarMonth, contentDescription = "Changer la date", tint = Slate400, modifier = Modifier.size(18.dp))
                                 Spacer(modifier = Modifier.width(10.dp))
                                 val dateFormat = SimpleDateFormat("EEEE, d MMMM yyyy", Locale.FRANCE)
                                 Text(
@@ -239,6 +307,8 @@ fun AddEditExpenseScreen(
                                     fontWeight = FontWeight.Medium,
                                     color = Slate700
                                 )
+                                Spacer(modifier = Modifier.weight(1f))
+                                Icon(Icons.Default.EditCalendar, contentDescription = "Modifier la date", tint = Slate300, modifier = Modifier.size(16.dp))
                             }
                             HorizontalDivider(
                                 modifier = Modifier.padding(vertical = 12.dp),
@@ -253,6 +323,9 @@ fun AddEditExpenseScreen(
                                     onValueChange = { note = it },
                                     textStyle = TextStyle(fontSize = 14.sp, color = Slate700),
                                     modifier = Modifier.fillMaxWidth(),
+                                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                                    keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+                                    singleLine = true,
                                     decorationBox = { innerTextField ->
                                         if (note.isEmpty()) {
                                             Text("Ajouter une note facultative...", fontSize = 14.sp, color = Slate300)
@@ -278,8 +351,11 @@ fun AddEditExpenseScreen(
                         if (amountValue <= 0) {
                             amountError = "Le montant doit être strictement positif"
                             hasError = true
+                        } else if (amountValue > 999_999_999.0) {
+                            amountError = "Le montant est trop élevé"
+                            hasError = true
                         }
-                        if (selectedCategoryId == null) {
+                        if (selectedCategoryId == null && categories.isNotEmpty()) {
                             categoryError = "Veuillez sélectionner une catégorie"
                             hasError = true
                         }
@@ -288,8 +364,9 @@ fun AddEditExpenseScreen(
                             val expense = Expense(
                                 id = expenseId,
                                 amount = amountValue,
+                                currency = currency,
                                 date = date,
-                                categoryId = selectedCategoryId!!,
+                                categoryId = selectedCategoryId ?: categories.first().id,
                                 note = note,
                                 paymentMethod = null,
                                 createdAt = existingExpense?.createdAt ?: System.currentTimeMillis()
@@ -323,6 +400,30 @@ fun AddEditExpenseScreen(
         }
     }
 
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = date
+        )
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { date = it }
+                    showDatePicker = false
+                }) {
+                    Text("Confirmer", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Annuler")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
@@ -349,6 +450,20 @@ fun AddEditExpenseScreen(
     }
 }
 
+private fun sanitizeAmountInput(newValue: String, currentValue: String): String? {
+    if (newValue.isEmpty()) return ""
+    val filtered = newValue.filter { it.isDigit() || it == '.' || it == ',' }
+    if (filtered != newValue) return null
+    val dotCount = filtered.count { it == '.' }
+    val commaCount = filtered.count { it == ',' }
+    if (dotCount > 1 || commaCount > 1 || (dotCount > 0 && commaCount > 0)) return null
+    val normalized = filtered.replace(",", ".")
+    if (normalized.startsWith(".")) return "0$normalized"
+    val parts = normalized.split(".")
+    if (parts.size == 2 && parts[1].length > 2) return currentValue
+    return filtered
+}
+
 @Composable
 fun CategoryOption(
     category: Category,
@@ -356,10 +471,13 @@ fun CategoryOption(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val bgColor = if (isSelected) Emerald50 else Slate50
-    val borderColor = if (isSelected) Emerald100 else Color.Transparent
-    val iconBgColor = if (isSelected) Emerald600 else Slate200
-    val textColor = if (isSelected) Emerald600 else Slate700
+    val categoryColor = try {
+        Color(android.graphics.Color.parseColor(category.color))
+    } catch (_: Exception) { Emerald600 }
+    val bgColor = if (isSelected) categoryColor.copy(alpha = 0.1f) else Slate50
+    val borderColor = if (isSelected) categoryColor.copy(alpha = 0.3f) else Color.Transparent
+    val iconBgColor = if (isSelected) categoryColor else Slate200
+    val textColor = if (isSelected) categoryColor else Slate700
     val iconTintColor = if (isSelected) Color.White else Slate500
 
     Surface(
@@ -389,159 +507,6 @@ fun CategoryOption(
                 color = textColor,
                 maxLines = 1
             )
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun AddEditExpenseScreenPreview() {
-    SmartBudgetTheme {
-        val categories = listOf(
-            Category(id = 1, name = "Courses", icon = "🛒", color = "#10b981"),
-            Category(id = 2, name = "Transport", icon = "🚌", color = "#64748b"),
-            Category(id = 3, name = "Loisirs", icon = "🎬", color = "#8b5cf6"),
-            Category(id = 4, name = "Santé", icon = "🏥", color = "#ef4444")
-        )
-
-        Scaffold(
-            containerColor = Color.White,
-            topBar = {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Surface(
-                        modifier = Modifier.size(40.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        color = Slate50
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(Icons.Default.Close, contentDescription = "Close", tint = Slate400, modifier = Modifier.size(20.dp))
-                        }
-                    }
-                    Text(
-                        text = "Nouvelle dépense",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Slate900
-                    )
-                    Box(modifier = Modifier.size(40.dp))
-                }
-            }
-        ) { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .padding(horizontal = 32.dp)
-                    .fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "ENTREZ LE MONTANT",
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Slate400,
-                    letterSpacing = 1.sp
-                )
-                
-                Row(
-                    modifier = Modifier.padding(vertical = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "MAD",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Slate300
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "450.00",
-                        fontSize = 40.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Emerald600
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        text = "CATÉGORIE",
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Slate400,
-                        letterSpacing = 1.sp
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(2),
-                        modifier = Modifier.height(140.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(categories) { category ->
-                            CategoryOption(
-                                category = category,
-                                isSelected = category.id == 1L,
-                                onClick = { }
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        text = "DATE & NOTE",
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Slate400,
-                        letterSpacing = 1.sp
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Surface(
-                        color = Slate50,
-                        shape = RoundedCornerShape(24.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = Slate400, modifier = Modifier.size(20.dp))
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(text = "Mercredi, 13 Mai 2026", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Slate700)
-                            }
-                            Divider(modifier = Modifier.padding(vertical = 12.dp), color = Slate100)
-                            Row(verticalAlignment = Alignment.Top) {
-                                Icon(Icons.Default.Edit, contentDescription = null, tint = Slate400, modifier = Modifier.size(20.dp).padding(top = 2.dp))
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text("Courses Marjane", fontSize = 14.sp, color = Slate700)
-                            }
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                Button(
-                    onClick = { },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(64.dp)
-                        .padding(bottom = 8.dp),
-                    shape = RoundedCornerShape(24.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Slate900),
-                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
-                ) {
-                    Text("Enregistrer la dépense", fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                }
-            }
         }
     }
 }

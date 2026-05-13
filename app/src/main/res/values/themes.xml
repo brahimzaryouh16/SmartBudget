@@ -2,4 +2,8 @@
 <resources>
 
     <style name="Theme.SmartBudget" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.SmartBudget.Splash" parent="Theme.SmartBudget">
+        <item name="android:windowBackground">@color/ic_launcher_background</item>
+    </style>
 </resources>

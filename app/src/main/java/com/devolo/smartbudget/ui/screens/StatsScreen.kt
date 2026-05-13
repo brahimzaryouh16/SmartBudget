@@ -20,9 +20,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
-import androidx.compose.ui.tooling.preview.Preview
 import com.devolo.smartbudget.data.model.Category
 import com.devolo.smartbudget.data.model.Expense
+import com.devolo.smartbudget.ui.components.ShimmerChartCard
 import com.devolo.smartbudget.ui.theme.*
 import com.devolo.smartbudget.ui.viewmodel.ExpenseViewModel
 import java.util.*
@@ -33,6 +33,8 @@ fun StatsScreen(viewModel: ExpenseViewModel) {
     val categories by viewModel.categories.collectAsState()
     val totalAmount by viewModel.totalMonthAmount.collectAsState()
     val previousTotal by viewModel.previousMonthTotal.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val currency by viewModel.currency.collectAsState()
 
     val categoryStats = categories.map { category ->
         val amount = expenses.filter { it.categoryId == category.id }.sumOf { it.amount }
@@ -42,7 +44,7 @@ fun StatsScreen(viewModel: ExpenseViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Slate100)
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 20.dp)
     ) {
         Spacer(modifier = Modifier.height(12.dp))
@@ -58,12 +60,12 @@ fun StatsScreen(viewModel: ExpenseViewModel) {
                 text = "Statistiques",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
-                color = Slate900
+                color = MaterialTheme.colorScheme.onBackground
             )
             Surface(
                 modifier = Modifier.size(42.dp),
                 shape = RoundedCornerShape(14.dp),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.surface,
                 border = androidx.compose.foundation.BorderStroke(1.dp, Slate100),
                 tonalElevation = 0.dp,
                 shadowElevation = 1.dp
@@ -71,7 +73,7 @@ fun StatsScreen(viewModel: ExpenseViewModel) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.Default.ShowChart,
-                        contentDescription = null,
+                        contentDescription = "Statistiques",
                         tint = Slate400,
                         modifier = Modifier.size(22.dp)
                     )
@@ -85,40 +87,50 @@ fun StatsScreen(viewModel: ExpenseViewModel) {
             contentPadding = PaddingValues(bottom = 88.dp)
         ) {
             item {
-                ChartCard(totalAmount = totalAmount, previousTotal = previousTotal)
-            }
-
-            if (categoryStats.isNotEmpty()) {
-                item {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "RÉPARTITION PAR CATÉGORIE",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Slate400,
-                        letterSpacing = 1.sp,
-                        modifier = Modifier.padding(start = 2.dp)
+                if (isLoading) {
+                    ShimmerChartCard()
+                } else {
+                    ChartCard(
+                        totalAmount = totalAmount,
+                        previousTotal = previousTotal,
+                        currency = currency
                     )
                 }
+            }
 
-                items(categoryStats) { stat ->
-                    CategoryProgressRow(stat = stat, totalAmount = totalAmount)
-                }
-            } else {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 48.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
+            if (!isLoading) {
+                if (categoryStats.isNotEmpty()) {
+                    item {
+                        Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Aucune dépense ce mois-ci",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium,
+                            text = "RÉPARTITION PAR CATÉGORIE",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
                             color = Slate400,
-                            textAlign = TextAlign.Center
+                            letterSpacing = 1.sp,
+                            modifier = Modifier.padding(start = 2.dp)
                         )
+                    }
+
+                    items(categoryStats) { stat ->
+                        CategoryProgressRow(stat = stat, totalAmount = totalAmount)
+                    }
+                } else {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 48.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Aucune dépense ce mois-ci",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Slate400,
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
                 }
             }
@@ -127,7 +139,7 @@ fun StatsScreen(viewModel: ExpenseViewModel) {
 }
 
 @Composable
-fun ChartCard(totalAmount: Double, previousTotal: Double = 0.0) {
+fun ChartCard(totalAmount: Double, previousTotal: Double = 0.0, currency: String = "MAD") {
     val percentageChange = if (previousTotal > 0) {
         ((totalAmount - previousTotal) / previousTotal * 100).toInt()
     } else 0
@@ -138,7 +150,7 @@ fun ChartCard(totalAmount: Double, previousTotal: Double = 0.0) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surface,
         tonalElevation = 0.dp,
         shadowElevation = 1.dp
     ) {
@@ -158,10 +170,10 @@ fun ChartCard(totalAmount: Double, previousTotal: Double = 0.0) {
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = String.format(Locale.getDefault(), "%,.0f MAD", totalAmount),
+                        text = String.format(Locale.getDefault(), "%,.0f $currency", totalAmount),
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Slate900
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 if (previousTotal > 0) {
@@ -216,7 +228,7 @@ fun CategoryProgressRow(stat: CategoryStat, totalAmount: Double) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surface,
         tonalElevation = 0.dp,
         shadowElevation = 1.dp
     ) {
@@ -246,13 +258,13 @@ fun CategoryProgressRow(stat: CategoryStat, totalAmount: Double) {
                         text = stat.category.name,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = Slate900
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = String.format(Locale.getDefault(), "%.0f", stat.amount),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = Slate900
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 Spacer(modifier = Modifier.height(6.dp))
