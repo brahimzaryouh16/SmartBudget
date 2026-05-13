@@ -1,6 +1,5 @@
 package com.devolo.smartbudget.ui.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,7 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.devolo.smartbudget.ui.theme.Slate100
-import com.devolo.smartbudget.ui.theme.Slate400
+import com.devolo.smartbudget.ui.theme.Slate500
 import com.devolo.smartbudget.ui.theme.Slate700
 import java.text.SimpleDateFormat
 import java.util.*
@@ -28,24 +27,23 @@ fun MonthSelector(
     onMonthChange: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val monthFormat = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
-    
+    val monthFormat = SimpleDateFormat("MMMM yyyy", Locale.FRANCE)
+
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
+        modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         MonthButton(icon = Icons.Default.ChevronLeft, onClick = { onMonthChange(-1) })
-        
+
         Text(
-            text = monthFormat.format(currentMonth.time).replaceFirstChar { it.uppercase() },
-            fontSize = 16.sp,
+            text = monthFormat.format(currentMonth.time)
+                .replaceFirstChar { it.uppercase() },
+            fontSize = 15.sp,
             fontWeight = FontWeight.SemiBold,
             color = Slate700
         )
-        
+
         MonthButton(icon = Icons.Default.ChevronRight, onClick = { onMonthChange(1) })
     }
 }
@@ -57,19 +55,20 @@ private fun MonthButton(
 ) {
     Surface(
         modifier = Modifier
-            .size(40.dp)
-            .clickable { onClick() },
-        shape = RoundedCornerShape(12.dp),
+            .size(44.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(14.dp),
         color = Color.White,
         border = androidx.compose.foundation.BorderStroke(1.dp, Slate100),
-        shadowElevation = 1.dp
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp
     ) {
         Box(contentAlignment = Alignment.Center) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                modifier = Modifier.size(20.dp),
-                tint = Slate400
+                modifier = Modifier.size(22.dp),
+                tint = Slate500
             )
         }
     }

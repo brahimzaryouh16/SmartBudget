@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -28,7 +29,7 @@ fun ExpenseItem(
     expense: Expense,
     category: Category?,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val dateFormat = SimpleDateFormat("dd MMM", Locale.getDefault())
     val categoryColor = if (category != null) {
@@ -38,17 +39,15 @@ fun ExpenseItem(
     }
 
     val dateLabel = remember(expense.date) {
-        val cal = Calendar.getInstance()
+        val cal = Calendar.getInstance().apply { timeInMillis = expense.date }
         val today = Calendar.getInstance()
-        cal.timeInMillis = expense.date
-
         val yesterday = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -1) }
 
         when {
-            (cal[Calendar.YEAR] == today[Calendar.YEAR]) &&
-                (cal[Calendar.DAY_OF_YEAR] == today[Calendar.DAY_OF_YEAR]) -> "Aujourd'hui"
-            (cal[Calendar.YEAR] == yesterday[Calendar.YEAR]) &&
-                (cal[Calendar.DAY_OF_YEAR] == yesterday[Calendar.DAY_OF_YEAR]) -> "Hier"
+            cal[Calendar.YEAR] == today[Calendar.YEAR] &&
+                cal[Calendar.DAY_OF_YEAR] == today[Calendar.DAY_OF_YEAR] -> "Aujourd'hui"
+            cal[Calendar.YEAR] == yesterday[Calendar.YEAR] &&
+                cal[Calendar.DAY_OF_YEAR] == yesterday[Calendar.DAY_OF_YEAR] -> "Hier"
             else -> dateFormat.format(Date(expense.date))
         }
     }
@@ -56,37 +55,40 @@ fun ExpenseItem(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp)
-            .clickable { onClick() },
-        shape = RoundedCornerShape(24.dp),
+            .clip(RoundedCornerShape(20.dp))
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(20.dp),
         color = Color.White,
-        border = androidx.compose.foundation.BorderStroke(1.dp, Slate50),
+        tonalElevation = 0.dp,
         shadowElevation = 1.dp
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier
+                .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(48.dp)
-                    .background(categoryColor.copy(alpha = 0.1f), RoundedCornerShape(16.dp)),
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(categoryColor.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = category?.icon ?: "❓", fontSize = 22.sp)
+                Text(text = category?.icon ?: "❓", fontSize = 20.sp)
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(14.dp))
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = expense.note ?: category?.name ?: "Dépense",
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = Slate900,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = "$dateLabel • ${category?.name ?: "Alimentation"}",
                     fontSize = 11.sp,
@@ -95,10 +97,12 @@ fun ExpenseItem(
                 )
             }
 
+            Spacer(modifier = Modifier.width(12.dp))
+
             Text(
                 text = String.format(Locale.getDefault(), "-%.2f", expense.amount),
                 fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.SemiBold,
                 color = Slate900
             )
         }

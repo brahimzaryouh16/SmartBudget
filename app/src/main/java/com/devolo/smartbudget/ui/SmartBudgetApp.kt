@@ -1,10 +1,6 @@
 package com.devolo.smartbudget.ui
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -64,28 +60,31 @@ fun SmartBudgetApp() {
             if (currentDestination?.route in listOf(Screen.Expenses.route, Screen.Stats.route, Screen.Settings.route)) {
                 NavigationBar(
                     containerColor = Color.White,
-                    tonalElevation = 8.dp,
-                    modifier = Modifier.padding(bottom = 0.dp)
+                    tonalElevation = 0.dp,
+                    modifier = Modifier
+                        .padding(bottom = 0.dp)
+                        .navigationBarsPadding()
                 ) {
                     val screens = listOf(Screen.Expenses, Screen.Stats, Screen.Settings)
                     screens.forEach { screen ->
                         val selected = currentDestination?.route == screen.route
                         NavigationBarItem(
-                            icon = { 
+                            icon = {
                                 Icon(
-                                    imageVector = screen.icon, 
+                                    imageVector = screen.icon,
                                     contentDescription = screen.title,
-                                    modifier = Modifier.size(24.dp)
-                                ) 
+                                    modifier = Modifier.size(22.dp)
+                                )
                             },
-                            label = { 
+                            label = {
                                 Text(
                                     text = screen.title,
                                     fontSize = 10.sp,
-                                    fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold
-                                ) 
+                                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
+                                )
                             },
                             selected = selected,
+                            alwaysShowLabel = true,
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = Emerald600,
                                 selectedTextColor = Emerald600,
@@ -113,13 +112,13 @@ fun SmartBudgetApp() {
                     onClick = { navController.navigate("add_edit_expense?expenseId=0") },
                     containerColor = Emerald500,
                     contentColor = Color.White,
-                    shape = RoundedCornerShape(20.dp),
+                    shape = RoundedCornerShape(16.dp),
                     modifier = Modifier
                         .size(56.dp)
                         .padding(bottom = 0.dp),
-                    elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 12.dp)
+                    elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 4.dp)
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "Add Expense", modifier = Modifier.size(32.dp))
+                    Icon(Icons.Default.Add, contentDescription = "Ajouter", modifier = Modifier.size(28.dp))
                 }
             }
         }

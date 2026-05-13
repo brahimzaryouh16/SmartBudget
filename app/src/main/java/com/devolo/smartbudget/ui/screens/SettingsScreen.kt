@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,7 +40,7 @@ fun SettingsScreen(viewModel: ExpenseViewModel) {
     var showCategoryDialog by remember { mutableStateOf(false) }
 
     val csvLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument("text/csv")
+        contract = ActivityResultContracts.CreateDocument("text/csv"),
     ) { uri ->
         uri?.let {
             val csvContent = viewModel.buildCsvContent()
@@ -58,26 +59,26 @@ fun SettingsScreen(viewModel: ExpenseViewModel) {
         modifier = Modifier
             .fillMaxSize()
             .background(Slate100)
-            .padding(horizontal = 24.dp)
+            .padding(horizontal = 20.dp)
     ) {
+        Spacer(modifier = Modifier.height(12.dp))
+
         Text(
             text = "Réglages",
-            fontSize = 24.sp,
+            fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
             color = Slate900,
-            modifier = Modifier.padding(top = 16.dp, bottom = 24.dp)
+            modifier = Modifier.padding(bottom = 20.dp)
         )
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(bottom = 100.dp)
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            contentPadding = PaddingValues(bottom = 88.dp)
         ) {
             item { ProfileSection() }
 
-            item {
-                SectionHeader(title = "GÉNÉRAL")
-            }
+            item { SectionHeader(title = "GÉNÉRAL") }
 
             item {
                 SettingsClickableItem(
@@ -101,9 +102,7 @@ fun SettingsScreen(viewModel: ExpenseViewModel) {
                 )
             }
 
-            item {
-                SectionHeader(title = "DONNÉES & EXPORT")
-            }
+            item { SectionHeader(title = "DONNÉES & EXPORT") }
 
             item {
                 SettingsClickableItem(
@@ -139,7 +138,7 @@ fun SettingsScreen(viewModel: ExpenseViewModel) {
             }
 
             item {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(20.dp))
                 Text(
                     text = "SmartBudget v1.0.0",
                     fontSize = 10.sp,
@@ -147,7 +146,7 @@ fun SettingsScreen(viewModel: ExpenseViewModel) {
                     color = Slate300,
                     letterSpacing = 0.2.sp,
                     modifier = Modifier.fillMaxWidth(),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    textAlign = TextAlign.Center,
                 )
             }
         }
@@ -235,23 +234,24 @@ fun SettingsScreen(viewModel: ExpenseViewModel) {
 private fun ProfileSection() {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(32.dp),
+        shape = RoundedCornerShape(24.dp),
         color = Color.White,
-        border = androidx.compose.foundation.BorderStroke(1.dp, Slate50),
-        shadowElevation = 2.dp
+        tonalElevation = 0.dp,
+        shadowElevation = 1.dp
     ) {
         Row(
-            modifier = Modifier.padding(20.dp),
+            modifier = Modifier.padding(18.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Surface(
-                modifier = Modifier.size(64.dp),
+                modifier = Modifier.size(52.dp),
                 shape = RoundedCornerShape(16.dp),
                 color = Emerald500,
-                shadowElevation = 8.dp
+                tonalElevation = 4.dp,
+                shadowElevation = 4.dp
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text("SB", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text("SB", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White)
                 }
             }
             Spacer(modifier = Modifier.width(16.dp))
@@ -371,37 +371,54 @@ private fun CategoryManagementDialog(
         title = { Text("Catégories", fontWeight = FontWeight.Bold) },
         text = {
             Column(modifier = Modifier.heightIn(max = 400.dp)) {
-                categories.forEach { category ->
+                categories.sortedBy { it.name }.forEachIndexed { index, category ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 6.dp),
+                            .padding(vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(category.icon, fontSize = 20.sp)
+                        Text(category.icon, fontSize = 18.sp)
                         Spacer(modifier = Modifier.width(12.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(category.name, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Slate700)
-                        }
+                        Text(
+                            text = category.name,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = if (category.isActive) Slate700 else Slate400,
+                            modifier = Modifier.weight(1f)
+                        )
                         Switch(
                             checked = category.isActive,
                             onCheckedChange = { onToggleActive(category) },
-                            colors = SwitchDefaults.colors(checkedTrackColor = Emerald600)
+                            colors = SwitchDefaults.colors(
+                                checkedTrackColor = Emerald600,
+                                uncheckedTrackColor = Slate200
+                            )
                         )
                         if (category.name != "Autre") {
-                            IconButton(onClick = { onDeleteCategory(category) }, modifier = Modifier.size(36.dp)) {
-                                Icon(Icons.Default.Delete, contentDescription = "Supprimer", tint = Slate400, modifier = Modifier.size(18.dp))
+                            IconButton(
+                                onClick = { onDeleteCategory(category) },
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = "Supprimer",
+                                    tint = Slate400,
+                                    modifier = Modifier.size(18.dp)
+                                )
                             }
                         }
                     }
-                    if (categories.last() != category) {
-                        Divider(color = Slate100, thickness = 0.5.dp)
+                    if (index < categories.size - 1) {
+                        HorizontalDivider(color = Slate100, thickness = 0.5.dp)
                     }
                 }
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("Fermer") }
+            TextButton(onClick = onDismiss) {
+                Text("Fermer", fontWeight = FontWeight.SemiBold)
+            }
         }
     )
 }
