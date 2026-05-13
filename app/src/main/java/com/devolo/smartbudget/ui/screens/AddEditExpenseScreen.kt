@@ -29,10 +29,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.devolo.smartbudget.data.model.Category
 import com.devolo.smartbudget.data.model.Expense
-import com.devolo.smartbudget.ui.theme.*
+import com.devolo.smartbudget.ui.viewmodel.ExpenseViewModel
 import java.text.SimpleDateFormat
 import java.util.*
-import com.devolo.smartbudget.ui.viewmodel.ExpenseViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,6 +55,7 @@ fun AddEditExpenseScreen(
     var categoryError by remember { mutableStateOf<String?>(null) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showUnsavedDialog by remember { mutableStateOf(false) }
+    var showCategorySheet by remember { mutableStateOf(false) }
 
     val hasUnsavedChanges by remember {
         derivedStateOf {
@@ -63,7 +63,7 @@ fun AddEditExpenseScreen(
             val existingAmount = existingExpense?.let { String.format(Locale.US, "%.2f", it.amount) } ?: ""
             val existingNote = existingExpense?.note ?: ""
             val existingCategory = existingExpense?.categoryId
-            
+
             if (isNew) {
                 amount.isNotEmpty() || note.isNotEmpty() || (selectedCategoryId != null && categories.isNotEmpty() && selectedCategoryId != categories.firstOrNull()?.id)
             } else {
@@ -173,35 +173,65 @@ fun AddEditExpenseScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                    shape = RoundedCornerShape(20.dp),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(
-                        text = currency,
-                        style = MaterialTheme.typography.displaySmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.outline
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    BasicTextField(
-                        value = amount,
-                        onValueChange = { sanitizeAmountInput(it, amount)?.let { amount = it } },
-                        textStyle = TextStyle(
-                            fontSize = 42.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary,
-                            textAlign = TextAlign.Center
-                        ),
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Decimal,
-                            imeAction = ImeAction.Done
-                        ),
-                        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-                        singleLine = true,
-                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                        modifier = Modifier.widthIn(min = 100.dp)
-                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer
+                        ) {
+                            Text(
+                                text = currency,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        BasicTextField(
+                            value = amount,
+                            onValueChange = { sanitizeAmountInput(it, amount)?.let { amount = it } },
+                            textStyle = TextStyle(
+                                fontSize = 36.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                textAlign = TextAlign.Start
+                            ),
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Decimal,
+                                imeAction = ImeAction.Done
+                            ),
+                            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+                            singleLine = true,
+                            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(vertical = 4.dp),
+                            decorationBox = { innerTextField ->
+                                if (amount.isEmpty()) {
+                                    Text(
+                                        text = "0,00",
+                                        style = TextStyle(
+                                            fontSize = 36.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
+                                            textAlign = TextAlign.Start
+                                        )
+                                    )
+                                }
+                                innerTextField()
+                            }
+                        )
+                    }
                 }
 
                 if (amountError != null) {
@@ -225,50 +255,90 @@ fun AddEditExpenseScreen(
                         letterSpacing = 1.sp
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-                    if (categories.isEmpty()) {
-                        Surface(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
-                            color = WarningLight
-                        ) {
+
+                    val selectedCategory = categories.find { it.id == selectedCategoryId }
+
+                    Surface(
+                        onClick = {
+                            if (categories.isNotEmpty()) showCategorySheet = true
+                        },
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        if (selectedCategory != null) {
                             Row(
-                                modifier = Modifier.padding(16.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(Icons.Default.Info, contentDescription = null, tint = Warning, modifier = Modifier.size(24.dp))
+                                Surface(
+                                    modifier = Modifier.size(44.dp),
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = (try {
+                                        Color(android.graphics.Color.parseColor(selectedCategory.color))
+                                    } catch (_: Exception) { MaterialTheme.colorScheme.primary }).copy(alpha = 0.15f)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Text(text = selectedCategory.icon, fontSize = 22.sp)
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = selectedCategory.name,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                                Icon(
+                                    imageVector = Icons.Default.UnfoldMore,
+                                    contentDescription = "Changer",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+                        } else {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Surface(
+                                    modifier = Modifier.size(44.dp),
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = MaterialTheme.colorScheme.surfaceVariant
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(
+                                            Icons.Default.Category,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                    }
+                                }
                                 Spacer(modifier = Modifier.width(16.dp))
                                 Text(
-                                    text = "Aucune catégorie active. Activez-en dans les Réglages.",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    text = "Sélectionner une catégorie",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Icon(
+                                    imageVector = Icons.Default.UnfoldMore,
+                                    contentDescription = "Sélectionner",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(22.dp)
                                 )
                             }
                         }
-                    } else {
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            val rows = categories.chunked(2)
-                            rows.forEach { row ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                ) {
-                                    row.forEach { category ->
-                                        CategoryOption(
-                                            category = category,
-                                            isSelected = selectedCategoryId == category.id,
-                                            onClick = { selectedCategoryId = category.id },
-                                            modifier = Modifier.weight(1f)
-                                        )
-                                    }
-                                    if (row.size < 2) {
-                                        Spacer(modifier = Modifier.weight(1f))
-                                    }
-                                }
-                            }
-                        }
                     }
+
                     if (categoryError != null) {
                         Text(
                             text = categoryError!!,
@@ -453,6 +523,88 @@ fun AddEditExpenseScreen(
             }
         )
     }
+
+    if (showCategorySheet) {
+        val sheetState = rememberModalBottomSheetState()
+        ModalBottomSheet(
+            onDismissRequest = { showCategorySheet = false },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 32.dp)
+            ) {
+                Text(
+                    text = "Choisir une catégorie",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                categories.forEach { category ->
+                    val catColor = try {
+                        Color(android.graphics.Color.parseColor(category.color))
+                    } catch (_: Exception) { MaterialTheme.colorScheme.primary }
+
+                    Surface(
+                        onClick = {
+                            selectedCategoryId = category.id
+                            showCategorySheet = false
+                        },
+                        shape = RoundedCornerShape(14.dp),
+                        color = if (selectedCategoryId == category.id) catColor.copy(alpha = 0.1f)
+                                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                        border = if (selectedCategoryId == category.id)
+                                androidx.compose.foundation.BorderStroke(1.dp, catColor.copy(alpha = 0.3f))
+                                else null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Surface(
+                                modifier = Modifier.size(40.dp),
+                                shape = RoundedCornerShape(10.dp),
+                                color = if (selectedCategoryId == category.id) catColor
+                                        else MaterialTheme.colorScheme.surfaceVariant
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Text(
+                                        text = category.icon,
+                                        fontSize = 20.sp
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.width(14.dp))
+                            Text(
+                                text = category.name,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = if (selectedCategoryId == category.id) FontWeight.Bold else FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.weight(1f)
+                            )
+                            if (selectedCategoryId == category.id) {
+                                Icon(
+                                    imageVector = Icons.Default.CheckCircle,
+                                    contentDescription = "Sélectionné",
+                                    tint = catColor,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 private fun sanitizeAmountInput(newValue: String, currentValue: String): String? {
@@ -467,52 +619,4 @@ private fun sanitizeAmountInput(newValue: String, currentValue: String): String?
     val parts = normalized.split(".")
     if (parts.size == 2 && parts[1].length > 2) return currentValue
     return filtered
-}
-
-@Composable
-fun CategoryOption(
-    category: Category,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val categoryColor = try {
-        Color(android.graphics.Color.parseColor(category.color))
-    } catch (_: Exception) { MaterialTheme.colorScheme.primary }
-    
-    val bgColor = if (isSelected) categoryColor.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-    val borderColor = if (isSelected) categoryColor.copy(alpha = 0.4f) else Color.Transparent
-    val iconBgColor = if (isSelected) categoryColor else MaterialTheme.colorScheme.surfaceVariant
-    val textColor = if (isSelected) categoryColor else MaterialTheme.colorScheme.onSurface
-    val iconTintColor = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
-
-    Surface(
-        modifier = modifier.clip(RoundedCornerShape(14.dp)).clickable { onClick() },
-        shape = RoundedCornerShape(14.dp),
-        color = bgColor,
-        border = androidx.compose.foundation.BorderStroke(1.dp, borderColor)
-    ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Surface(
-                modifier = Modifier.size(36.dp),
-                shape = RoundedCornerShape(10.dp),
-                color = iconBgColor
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text(text = category.icon, fontSize = 18.sp)
-                }
-            }
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                text = category.name,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold,
-                color = textColor,
-                maxLines = 1
-            )
-        }
-    }
 }

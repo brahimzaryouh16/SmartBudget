@@ -6,7 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ShowChart
+import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
 import com.devolo.smartbudget.data.model.Category
-import com.devolo.smartbudget.data.model.Expense
 import com.devolo.smartbudget.ui.components.ShimmerChartCard
 import com.devolo.smartbudget.ui.theme.*
 import com.devolo.smartbudget.ui.viewmodel.ExpenseViewModel
@@ -35,9 +34,14 @@ fun StatsScreen(viewModel: ExpenseViewModel) {
     val previousTotal by viewModel.previousMonthTotal.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val currency by viewModel.currency.collectAsState()
+    val currentMonth by viewModel.currentMonth.collectAsState()
+
+    val monthFormat = java.text.SimpleDateFormat("MMMM yyyy", Locale.FRANCE)
+    val monthText = monthFormat.format(currentMonth.time)
+        .replaceFirstChar { it.uppercase() }
 
     val categoryStats = categories.map { category ->
-        val amount = expenses.filter { it.categoryId == category.id }.sumOf { it.amount }
+        val amount = expenses.asSequence().filter { it.categoryId == category.id }.sumOf { it.amount }
         CategoryStat(category, amount)
     }.filter { it.amount > 0 }.sortedByDescending { it.amount }
 
@@ -45,7 +49,7 @@ fun StatsScreen(viewModel: ExpenseViewModel) {
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 20.dp)
+            .padding(horizontal = 20.dp),
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -56,12 +60,19 @@ fun StatsScreen(viewModel: ExpenseViewModel) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "Statistiques",
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
+            Column {
+                Text(
+                    text = "Statistiques",
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Text(
+                    text = monthText,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
             Surface(
                 modifier = Modifier.size(44.dp),
                 shape = RoundedCornerShape(12.dp),
@@ -70,7 +81,7 @@ fun StatsScreen(viewModel: ExpenseViewModel) {
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
-                        imageVector = Icons.Default.ShowChart,
+                        imageVector = Icons.AutoMirrored.Filled.ShowChart,
                         contentDescription = "Statistiques",
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(24.dp)
@@ -88,10 +99,12 @@ fun StatsScreen(viewModel: ExpenseViewModel) {
                 if (isLoading) {
                     ShimmerChartCard()
                 } else {
-                    ChartCard(
+                    MonthSummaryCard(
                         totalAmount = totalAmount,
                         previousTotal = previousTotal,
-                        currency = currency
+                        currency = currency,
+                        expenseCount = expenses.size,
+                        categoryCount = categoryStats.size
                     )
                 }
             }
@@ -111,7 +124,7 @@ fun StatsScreen(viewModel: ExpenseViewModel) {
                     }
 
                     items(categoryStats) { stat ->
-                        CategoryProgressRow(stat = stat, totalAmount = totalAmount)
+                        CategoryProgressRow(stat = stat, totalAmount = totalAmount, currency = currency)
                     }
                 } else {
                     item {
@@ -136,9 +149,15 @@ fun StatsScreen(viewModel: ExpenseViewModel) {
 }
 
 @Composable
-fun ChartCard(totalAmount: Double, previousTotal: Double = 0.0, currency: String = "MAD") {
+fun MonthSummaryCard(
+    totalAmount: Double,
+    previousTotal: Double = 0.0,
+    currency: String = "MAD",
+    expenseCount: Int,
+    categoryCount: Int
+) {
     val percentageChange = if (previousTotal > 0) {
-        ((totalAmount - previousTotal) / previousTotal * 100).toInt()
+        (((totalAmount - previousTotal) / previousTotal) * 100).toInt()
     } else 0
     val isIncrease = percentageChange > 0
     val changeColor = if (isIncrease) MaterialTheme.colorScheme.error else Success
@@ -188,30 +207,23 @@ fun ChartCard(totalAmount: Double, previousTotal: Double = 0.0, currency: String
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                thickness = 0.5.dp
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.Bottom
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                // Mock chart bars
-                val barHeights = listOf(0.4f, 0.7f, 0.5f, 1f, 0.6f, 0.35f, 0.55f)
-                barHeights.forEachIndexed { index, height ->
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .fillMaxHeight(height)
-                                .clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp))
-                                .background(if (index == 3) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
-                        )
-                    }
+                StatItem(label = "Dépenses", value = expenseCount.toString())
+                StatItem(label = "Catégories", value = categoryCount.toString())
+                if (previousTotal > 0) {
+                    StatItem(label = "Évolution", value = changeLabel, valueColor = changeColor)
                 }
             }
         }
@@ -219,8 +231,26 @@ fun ChartCard(totalAmount: Double, previousTotal: Double = 0.0, currency: String
 }
 
 @Composable
-fun CategoryProgressRow(stat: CategoryStat, totalAmount: Double) {
-    val percentage = if (totalAmount > 0) (stat.amount / totalAmount).toFloat() else 0f
+private fun StatItem(label: String, value: String, valueColor: Color = MaterialTheme.colorScheme.onSurface) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = valueColor
+        )
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+fun CategoryProgressRow(stat: CategoryStat, totalAmount: Double, currency: String = "MAD") {
+    val percentage = if (totalAmount > 0) (stat.amount / totalAmount) * 100 else 0.0
     val color = try { Color(stat.category.color.toColorInt()) } catch (_: Exception) { Slate500 }
 
     Surface(
@@ -257,12 +287,21 @@ fun CategoryProgressRow(stat: CategoryStat, totalAmount: Double) {
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    Text(
-                        text = String.format(Locale.getDefault(), "%,.0f", stat.amount),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "${percentage.toInt()}%",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = color,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                        Text(
+                            text = String.format(Locale.getDefault(), "%,.0f $currency", stat.amount),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Box(
@@ -274,7 +313,7 @@ fun CategoryProgressRow(stat: CategoryStat, totalAmount: Double) {
                 ) {
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth(percentage.coerceIn(0f, 1f))
+                            .fillMaxWidth((percentage / 100.0).toFloat().coerceIn(0f, 1f))
                             .fillMaxHeight()
                             .clip(RoundedCornerShape(3.dp))
                             .background(color)

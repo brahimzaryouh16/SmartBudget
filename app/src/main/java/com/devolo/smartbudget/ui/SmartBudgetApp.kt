@@ -3,21 +3,18 @@ package com.devolo.smartbudget.ui
 import android.app.Activity
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -34,7 +31,12 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.devolo.smartbudget.data.local.SmartBudgetDatabase
 import com.devolo.smartbudget.data.repository.BudgetRepository
-import com.devolo.smartbudget.ui.screens.*
+import com.devolo.smartbudget.ui.screens.AddEditExpenseScreen
+import com.devolo.smartbudget.ui.screens.ExpensesScreen
+import com.devolo.smartbudget.ui.screens.SearchFilterScreen
+import com.devolo.smartbudget.ui.screens.SettingsScreen
+import com.devolo.smartbudget.ui.screens.StatsScreen
+import com.devolo.smartbudget.ui.screens.WelcomeScreen
 import com.devolo.smartbudget.ui.theme.*
 import com.devolo.smartbudget.ui.viewmodel.ExpenseViewModel
 import com.devolo.smartbudget.ui.viewmodel.ExpenseViewModelFactory
@@ -46,6 +48,7 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
     object Stats : Screen("stats", "Stats", Icons.Default.ShowChart)
     object Settings : Screen("settings", "Réglages", Icons.Default.Settings)
     object AddEditExpense : Screen("add_edit_expense?expenseId={expenseId}", "Dépense", Icons.Default.Add)
+    object SearchFilter : Screen("search_filter", "Recherche", Icons.Default.Search)
 }
 
 @Composable
@@ -194,7 +197,8 @@ fun SmartBudgetApp() {
             composable(Screen.Expenses.route) {
                 ExpensesScreen(
                     viewModel = viewModel,
-                    onEditExpense = { id -> navController.navigate("add_edit_expense?expenseId=$id") }
+                    onEditExpense = { id -> navController.navigate("add_edit_expense?expenseId=$id") },
+                    onSearchFilter = { navController.navigate(Screen.SearchFilter.route) }
                 )
             }
             composable(Screen.Stats.route) {
@@ -202,6 +206,13 @@ fun SmartBudgetApp() {
             }
             composable(Screen.Settings.route) {
                 SettingsScreen(viewModel = viewModel)
+            }
+            composable(Screen.SearchFilter.route) {
+                SearchFilterScreen(
+                    viewModel = viewModel,
+                    onEditExpense = { id -> navController.navigate("add_edit_expense?expenseId=$id") },
+                    onNavigateBack = { navController.popBackStack() }
+                )
             }
             composable(
                 route = Screen.AddEditExpense.route,
@@ -218,54 +229,6 @@ fun SmartBudgetApp() {
     }
 
     if (showOnboarding) {
-        AlertDialog(
-            onDismissRequest = { showOnboarding = false },
-            containerColor = MaterialTheme.colorScheme.surface,
-            title = {
-                Text("Bienvenue sur SmartBudget", style = MaterialTheme.typography.titleLarge)
-            },
-            text = {
-                Column {
-                    Text("Gérez vos dépenses simplement et efficacement.", style = MaterialTheme.typography.bodyMedium)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    OnboardingItem(icon = Icons.Default.Home, text = "Consultez vos dépenses par mois")
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OnboardingItem(icon = Icons.Default.ShowChart, text = "Visualisez vos statistiques")
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OnboardingItem(icon = Icons.Default.Add, text = "Ajoutez vos dépenses en un clic")
-                    Spacer(modifier = Modifier.height(20.dp))
-                    Text(
-                        text = "Commencez par ajouter votre première dépense !",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = { showOnboarding = false },
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text("C'est parti !")
-                }
-            }
-        )
-    }
-}
-
-@Composable
-fun OnboardingItem(icon: ImageVector, text: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(
-            modifier = Modifier
-                .size(32.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.primaryContainer),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
-        }
-        Spacer(modifier = Modifier.width(12.dp))
-        Text(text = text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        WelcomeScreen(onDismiss = { showOnboarding = false })
     }
 }
