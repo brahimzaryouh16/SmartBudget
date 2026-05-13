@@ -3,7 +3,9 @@ package com.devolo.smartbudget.ui
 import android.app.Activity
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -14,6 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -40,7 +43,7 @@ import kotlinx.coroutines.launch
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector) {
     object Expenses : Screen("expenses", "Dépenses", Icons.Default.Home)
-    object Stats : Screen("stats", "Statistiques", Icons.Default.ShowChart)
+    object Stats : Screen("stats", "Stats", Icons.Default.ShowChart)
     object Settings : Screen("settings", "Réglages", Icons.Default.Settings)
     object AddEditExpense : Screen("add_edit_expense?expenseId={expenseId}", "Dépense", Icons.Default.Add)
 }
@@ -105,13 +108,13 @@ fun SmartBudgetApp() {
     }
 
     Scaffold(
-        containerColor = Slate100,
+        containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState) { data ->
                 Snackbar(
                     snackbarData = data,
-                    containerColor = Slate900,
-                    contentColor = Color.White,
+                    containerColor = MaterialTheme.colorScheme.onSurface,
+                    contentColor = MaterialTheme.colorScheme.surface,
                     shape = RoundedCornerShape(12.dp)
                 )
             }
@@ -119,11 +122,9 @@ fun SmartBudgetApp() {
         bottomBar = {
             if (currentDestination?.route in listOf(Screen.Expenses.route, Screen.Stats.route, Screen.Settings.route)) {
                 NavigationBar(
-                    containerColor = Color.White,
+                    containerColor = MaterialTheme.colorScheme.surface,
                     tonalElevation = 0.dp,
-                    modifier = Modifier
-                        .padding(bottom = 0.dp)
-                        .navigationBarsPadding()
+                    modifier = Modifier.navigationBarsPadding()
                 ) {
                     val screens = listOf(Screen.Expenses, Screen.Stats, Screen.Settings)
                     screens.forEach { screen ->
@@ -133,24 +134,24 @@ fun SmartBudgetApp() {
                                 Icon(
                                     imageVector = screen.icon,
                                     contentDescription = screen.title,
-                                    modifier = Modifier.size(22.dp)
+                                    modifier = Modifier.size(24.dp)
                                 )
                             },
                             label = {
                                 Text(
                                     text = screen.title,
-                                    fontSize = 10.sp,
+                                    style = MaterialTheme.typography.labelMedium,
                                     fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
                                 )
                             },
                             selected = selected,
                             alwaysShowLabel = true,
                             colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = Emerald600,
-                                selectedTextColor = Emerald600,
-                                unselectedIconColor = Slate400,
-                                unselectedTextColor = Slate400,
-                                indicatorColor = Emerald50
+                                selectedIconColor = MaterialTheme.colorScheme.primary,
+                                selectedTextColor = MaterialTheme.colorScheme.primary,
+                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                indicatorColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
                             ),
                             onClick = {
                                 navController.navigate(screen.route) {
@@ -170,15 +171,13 @@ fun SmartBudgetApp() {
             if (currentDestination?.route == Screen.Expenses.route) {
                 FloatingActionButton(
                     onClick = { navController.navigate("add_edit_expense?expenseId=0") },
-                    containerColor = Emerald500,
-                    contentColor = Color.White,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
                     shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier
-                        .size(56.dp)
-                        .padding(bottom = 0.dp),
+                    modifier = Modifier.padding(bottom = 0.dp),
                     elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 4.dp)
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "Ajouter une dépense", modifier = Modifier.size(28.dp))
+                    Icon(Icons.Default.Add, contentDescription = "Ajouter une dépense", modifier = Modifier.size(24.dp))
                 }
             }
         }
@@ -221,39 +220,52 @@ fun SmartBudgetApp() {
     if (showOnboarding) {
         AlertDialog(
             onDismissRequest = { showOnboarding = false },
+            containerColor = MaterialTheme.colorScheme.surface,
             title = {
-                Text("Bienvenue sur SmartBudget", fontWeight = FontWeight.Bold)
+                Text("Bienvenue sur SmartBudget", style = MaterialTheme.typography.titleLarge)
             },
             text = {
                 Column {
-                    Text("Gérez vos dépenses simplement et efficacement.", fontSize = 14.sp)
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Home, contentDescription = null, tint = Emerald600, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Consultez vos dépenses par mois", fontSize = 13.sp, color = Slate500)
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.ShowChart, contentDescription = null, tint = Emerald600, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Visualisez vos statistiques", fontSize = 13.sp, color = Slate500)
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Add, contentDescription = null, tint = Emerald600, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Ajoutez vos dépenses en un clic", fontSize = 13.sp, color = Slate500)
-                    }
+                    Text("Gérez vos dépenses simplement et efficacement.", style = MaterialTheme.typography.bodyMedium)
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Commencez par ajouter votre première dépense !", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = Slate700)
+                    OnboardingItem(icon = Icons.Default.Home, text = "Consultez vos dépenses par mois")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OnboardingItem(icon = Icons.Default.ShowChart, text = "Visualisez vos statistiques")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OnboardingItem(icon = Icons.Default.Add, text = "Ajoutez vos dépenses en un clic")
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Text(
+                        text = "Commencez par ajouter votre première dépense !",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                 }
             },
             confirmButton = {
-                TextButton(onClick = { showOnboarding = false }) {
-                    Text("C'est parti !", fontWeight = FontWeight.Bold, color = Emerald600)
+                Button(
+                    onClick = { showOnboarding = false },
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("C'est parti !")
                 }
             }
         )
+    }
+}
+
+@Composable
+fun OnboardingItem(icon: ImageVector, text: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(text = text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

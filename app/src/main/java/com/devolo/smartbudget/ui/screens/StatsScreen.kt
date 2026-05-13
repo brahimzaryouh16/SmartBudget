@@ -47,7 +47,7 @@ fun StatsScreen(viewModel: ExpenseViewModel) {
             .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 20.dp)
     ) {
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         Row(
             modifier = Modifier
@@ -58,24 +58,22 @@ fun StatsScreen(viewModel: ExpenseViewModel) {
         ) {
             Text(
                 text = "Statistiques",
-                fontSize = 22.sp,
+                style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
             )
             Surface(
-                modifier = Modifier.size(42.dp),
-                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier.size(44.dp),
+                shape = RoundedCornerShape(12.dp),
                 color = MaterialTheme.colorScheme.surface,
-                border = androidx.compose.foundation.BorderStroke(1.dp, Slate100),
-                tonalElevation = 0.dp,
-                shadowElevation = 1.dp
+                shadowElevation = 0.5.dp
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.Default.ShowChart,
                         contentDescription = "Statistiques",
-                        tint = Slate400,
-                        modifier = Modifier.size(22.dp)
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }
@@ -101,14 +99,14 @@ fun StatsScreen(viewModel: ExpenseViewModel) {
             if (!isLoading) {
                 if (categoryStats.isNotEmpty()) {
                     item {
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "RÉPARTITION PAR CATÉGORIE",
-                            fontSize = 11.sp,
+                            style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
-                            color = Slate400,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             letterSpacing = 1.sp,
-                            modifier = Modifier.padding(start = 2.dp)
+                            modifier = Modifier.padding(start = 4.dp)
                         )
                     }
 
@@ -120,14 +118,13 @@ fun StatsScreen(viewModel: ExpenseViewModel) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 48.dp),
+                                .padding(vertical = 64.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = "Aucune dépense ce mois-ci",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = Slate400,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center
                             )
                         }
@@ -144,17 +141,16 @@ fun ChartCard(totalAmount: Double, previousTotal: Double = 0.0, currency: String
         ((totalAmount - previousTotal) / previousTotal * 100).toInt()
     } else 0
     val isIncrease = percentageChange > 0
-    val changeColor = if (isIncrease) Danger else Emerald600
+    val changeColor = if (isIncrease) MaterialTheme.colorScheme.error else Success
     val changeLabel = if (percentageChange == 0) "0%" else "${if (isIncrease) "+" else ""}$percentageChange%"
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 0.dp,
-        shadowElevation = 1.dp
+        shadowElevation = 0.5.dp
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
+        Column(modifier = Modifier.padding(24.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -163,27 +159,27 @@ fun ChartCard(totalAmount: Double, previousTotal: Double = 0.0, currency: String
                 Column {
                     Text(
                         text = "TOTAL DU MOIS",
-                        fontSize = 10.sp,
+                        style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
-                        color = Slate400,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         letterSpacing = 1.sp
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = String.format(Locale.getDefault(), "%,.0f $currency", totalAmount),
-                        fontSize = 22.sp,
+                        style = MaterialTheme.typography.displaySmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 if (previousTotal > 0) {
                     Surface(
-                        color = if (isIncrease) Danger.copy(alpha = 0.1f) else Emerald50,
+                        color = if (isIncrease) MaterialTheme.colorScheme.error.copy(alpha = 0.1f) else Emerald50,
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Text(
                             text = changeLabel,
-                            fontSize = 11.sp,
+                            style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = changeColor,
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
@@ -192,16 +188,18 @@ fun ChartCard(totalAmount: Double, previousTotal: Double = 0.0, currency: String
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(90.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    .height(100.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.Bottom
             ) {
-                listOf(0.35f, 0.65f, 0.45f, 1f, 0.55f, 0.3f, 0.5f).forEachIndexed { index, height ->
+                // Mock chart bars
+                val barHeights = listOf(0.4f, 0.7f, 0.5f, 1f, 0.6f, 0.35f, 0.55f)
+                barHeights.forEachIndexed { index, height ->
                     Column(
                         modifier = Modifier.weight(1f),
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -210,8 +208,8 @@ fun ChartCard(totalAmount: Double, previousTotal: Double = 0.0, currency: String
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .fillMaxHeight(height)
-                                .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
-                                .background(if (index == 3) Emerald500 else Slate100)
+                                .clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp))
+                                .background(if (index == 3) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
                         )
                     }
                 }
@@ -223,30 +221,29 @@ fun ChartCard(totalAmount: Double, previousTotal: Double = 0.0, currency: String
 @Composable
 fun CategoryProgressRow(stat: CategoryStat, totalAmount: Double) {
     val percentage = if (totalAmount > 0) (stat.amount / totalAmount).toFloat() else 0f
-    val color = try { Color(stat.category.color.toColorInt()) } catch (_: Exception) { Slate400 }
+    val color = try { Color(stat.category.color.toColorInt()) } catch (_: Exception) { Slate500 }
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 0.dp,
-        shadowElevation = 1.dp
+        shadowElevation = 0.5.dp
     ) {
         Row(
-            modifier = Modifier.padding(14.dp),
+            modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(44.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .background(color.copy(alpha = 0.1f)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = stat.category.icon, fontSize = 18.sp)
+                Text(text = stat.category.icon, fontSize = 20.sp)
             }
 
-            Spacer(modifier = Modifier.width(14.dp))
+            Spacer(modifier = Modifier.width(16.dp))
 
             Column(modifier = Modifier.weight(1f)) {
                 Row(
@@ -256,28 +253,28 @@ fun CategoryProgressRow(stat: CategoryStat, totalAmount: Double) {
                 ) {
                     Text(
                         text = stat.category.name,
-                        fontSize = 13.sp,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = String.format(Locale.getDefault(), "%.0f", stat.amount),
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold,
+                        text = String.format(Locale.getDefault(), "%,.0f", stat.amount),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(5.dp)
+                        .height(6.dp)
                         .clip(RoundedCornerShape(3.dp))
-                        .background(Slate100)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                 ) {
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth(percentage)
+                            .fillMaxWidth(percentage.coerceIn(0f, 1f))
                             .fillMaxHeight()
                             .clip(RoundedCornerShape(3.dp))
                             .background(color)

@@ -16,6 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -85,11 +86,11 @@ fun SettingsScreen(viewModel: ExpenseViewModel) {
             .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 20.dp)
     ) {
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         Text(
             text = "Réglages",
-            fontSize = 22.sp,
+            style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.padding(bottom = 20.dp)
@@ -97,7 +98,7 @@ fun SettingsScreen(viewModel: ExpenseViewModel) {
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
             contentPadding = PaddingValues(bottom = 88.dp)
         ) {
             item { ProfileSection() }
@@ -107,8 +108,8 @@ fun SettingsScreen(viewModel: ExpenseViewModel) {
             item {
                 SettingsClickableItem(
                     icon = Icons.Default.Category,
-                    iconBg = Blue50,
-                    iconColor = Blue600,
+                    iconBg = MaterialTheme.colorScheme.primaryContainer,
+                    iconColor = MaterialTheme.colorScheme.primary,
                     title = "Catégories métier",
                     subtitle = "${allCategories.size} catégories",
                     onClick = { showCategoryDialog = true }
@@ -118,10 +119,10 @@ fun SettingsScreen(viewModel: ExpenseViewModel) {
             item {
                 SettingsClickableItem(
                     icon = Icons.Default.AttachMoney,
-                    iconBg = Purple50,
-                    iconColor = Purple600,
+                    iconBg = MaterialTheme.colorScheme.secondaryContainer,
+                    iconColor = MaterialTheme.colorScheme.secondary,
                     title = "Devise par défaut",
-                    trailing = { Text(currency, fontWeight = FontWeight.Bold, color = Emerald600, fontSize = 13.sp) },
+                    trailing = { Text(currency, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary) },
                     onClick = { showCurrencyDialog = true }
                 )
             }
@@ -130,7 +131,7 @@ fun SettingsScreen(viewModel: ExpenseViewModel) {
                 SettingsClickableItem(
                     icon = Icons.Default.AccountBalance,
                     iconBg = Emerald50,
-                    iconColor = Emerald600,
+                    iconColor = Success,
                     title = "Budget mensuel",
                     subtitle = if (monthlyBudget > 0) "${String.format(Locale.getDefault(), "%.0f", monthlyBudget)} $currency/mois"
                               else "Non défini",
@@ -144,7 +145,7 @@ fun SettingsScreen(viewModel: ExpenseViewModel) {
                 SettingsClickableItem(
                     icon = Icons.Default.FileDownload,
                     iconBg = Emerald50,
-                    iconColor = Emerald600,
+                    iconColor = Success,
                     title = "Exporter en CSV",
                     subtitle = "Dépenses du mois en cours",
                     onClick = { csvLauncher.launch("smartbudget_export.csv") }
@@ -154,8 +155,8 @@ fun SettingsScreen(viewModel: ExpenseViewModel) {
             item {
                 SettingsClickableItem(
                     icon = Icons.Default.DateRange,
-                    iconBg = Blue50,
-                    iconColor = Blue600,
+                    iconBg = InfoLight,
+                    iconColor = Info,
                     title = "Exporter par période",
                     subtitle = "Choisir une date de début et fin",
                     onClick = { showExportDateRangeDialog = true }
@@ -165,8 +166,8 @@ fun SettingsScreen(viewModel: ExpenseViewModel) {
             item {
                 SettingsClickableItem(
                     icon = Icons.Default.Storage,
-                    iconBg = Amber50,
-                    iconColor = Amber600,
+                    iconBg = WarningLight,
+                    iconColor = Warning,
                     title = "Charger données de démo",
                     subtitle = "35 dépenses sur 2 mois",
                     onClick = { showSeedDialog = true }
@@ -176,8 +177,8 @@ fun SettingsScreen(viewModel: ExpenseViewModel) {
             item {
                 SettingsClickableItem(
                     icon = Icons.Default.DeleteForever,
-                    iconBg = Red50,
-                    iconColor = Danger,
+                    iconBg = DangerLight,
+                    iconColor = MaterialTheme.colorScheme.error,
                     title = "Réinitialiser les données",
                     subtitle = "Supprime toutes les dépenses et catégories",
                     onClick = { showResetDialog = true }
@@ -185,16 +186,15 @@ fun SettingsScreen(viewModel: ExpenseViewModel) {
             }
 
             item {
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(32.dp))
                 Text(
-                    text = "SmartBudget v1.0.0",
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Slate300,
-                    letterSpacing = 0.2.sp,
+                    text = "SmartBudget v1.1.0",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center,
                 )
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
@@ -232,13 +232,13 @@ fun SettingsScreen(viewModel: ExpenseViewModel) {
     if (showResetDialog) {
         AlertDialog(
             onDismissRequest = { showResetDialog = false },
-            title = { Text("Réinitialiser", fontWeight = FontWeight.Bold) },
+            title = { Text("Réinitialiser", style = MaterialTheme.typography.titleLarge) },
             text = { Text("Voulez-vous vraiment supprimer toutes les données ? Cette action est irréversible.") },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.resetAllData()
                     showResetDialog = false
-                }, colors = ButtonDefaults.textButtonColors(contentColor = Danger)) {
+                }, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) {
                     Text("Réinitialiser", fontWeight = FontWeight.Bold)
                 }
             },
@@ -251,7 +251,7 @@ fun SettingsScreen(viewModel: ExpenseViewModel) {
     if (showSeedDialog) {
         AlertDialog(
             onDismissRequest = { showSeedDialog = false },
-            title = { Text("Données de démonstration", fontWeight = FontWeight.Bold) },
+            title = { Text("Données de démonstration", style = MaterialTheme.typography.titleLarge) },
             text = { Text("Cela va ajouter 35 dépenses réparties sur Mars et Avril 2026. Continuer ?") },
             confirmButton = {
                 TextButton(onClick = {
@@ -280,13 +280,13 @@ fun SettingsScreen(viewModel: ExpenseViewModel) {
     showDeleteCategoryDialog?.let { category ->
         AlertDialog(
             onDismissRequest = { showDeleteCategoryDialog = null },
-            title = { Text("Supprimer ${category.name}", fontWeight = FontWeight.Bold) },
+            title = { Text("Supprimer ${category.name}", style = MaterialTheme.typography.titleLarge) },
             text = { Text("Voulez-vous supprimer cette catégorie ? Les dépenses associées seront basculées vers la catégorie 'Autre'.") },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.deleteCategory(category.id, reassignToDefault = true)
                     showDeleteCategoryDialog = null
-                }, colors = ButtonDefaults.textButtonColors(contentColor = Danger)) {
+                }, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) {
                     Text("Supprimer", fontWeight = FontWeight.Bold)
                 }
             },
@@ -303,28 +303,25 @@ private fun ProfileSection() {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 0.dp,
-        shadowElevation = 1.dp
+        shadowElevation = 0.5.dp
     ) {
         Row(
-            modifier = Modifier.padding(18.dp),
+            modifier = Modifier.padding(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Surface(
-                modifier = Modifier.size(52.dp),
+                modifier = Modifier.size(56.dp),
                 shape = RoundedCornerShape(16.dp),
-                color = Emerald500,
-                tonalElevation = 4.dp,
-                shadowElevation = 4.dp
+                color = MaterialTheme.colorScheme.primary
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text("SB", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text("SB", style = MaterialTheme.typography.headlineSmall, color = Color.White)
                 }
             }
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(20.dp))
             Column {
-                Text("SmartBudget", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                Text("Gestion de budget personnel", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = Slate400)
+                Text("SmartBudget", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
+                Text("Gestion de budget personnel", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -334,11 +331,11 @@ private fun ProfileSection() {
 private fun SectionHeader(title: String) {
     Text(
         text = title,
-        fontSize = 10.sp,
+        style = MaterialTheme.typography.labelSmall,
         fontWeight = FontWeight.Bold,
-        color = Slate400,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
         letterSpacing = 1.sp,
-        modifier = Modifier.padding(start = 4.dp, top = 16.dp, bottom = 4.dp)
+        modifier = Modifier.padding(start = 8.dp, top = 20.dp, bottom = 8.dp)
     )
 }
 
@@ -356,34 +353,34 @@ private fun SettingsClickableItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() },
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface,
-        border = androidx.compose.foundation.BorderStroke(1.dp, Slate50)
+        shadowElevation = 0.5.dp
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Surface(
-                modifier = Modifier.size(40.dp),
+                modifier = Modifier.size(44.dp),
                 shape = RoundedCornerShape(12.dp),
                 color = iconBg
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Icon(icon, contentDescription = title, tint = iconColor, modifier = Modifier.size(20.dp))
+                    Icon(icon, contentDescription = title, tint = iconColor, modifier = Modifier.size(22.dp))
                 }
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(title, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
                 if (subtitle != null) {
-                    Text(subtitle, fontSize = 11.sp, fontWeight = FontWeight.Medium, color = Slate400)
+                    Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             if (trailing != null) {
                 trailing()
             } else {
-                Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Slate300, modifier = Modifier.size(20.dp))
+                Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.outline, modifier = Modifier.size(20.dp))
             }
         }
     }
@@ -398,7 +395,7 @@ private fun CurrencyPickerDialog(
     val currencies = listOf("MAD", "EUR", "USD", "GBP", "CAD")
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Devise par défaut", fontWeight = FontWeight.Bold) },
+        title = { Text("Devise par défaut", style = MaterialTheme.typography.titleLarge) },
         text = {
             Column {
                 currencies.forEach { c ->
@@ -412,10 +409,10 @@ private fun CurrencyPickerDialog(
                         RadioButton(
                             selected = c == currentCurrency,
                             onClick = { onSelect(c) },
-                            colors = RadioButtonDefaults.colors(selectedColor = Emerald600)
+                            colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary)
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(c, fontSize = 16.sp, fontWeight = FontWeight.Medium, color = Slate700)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(c, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
                     }
                 }
             }
@@ -437,11 +434,11 @@ private fun BudgetSettingDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Budget mensuel", fontWeight = FontWeight.Bold) },
+        title = { Text("Budget mensuel", style = MaterialTheme.typography.titleLarge) },
         text = {
             Column {
-                Text("Définissez un budget mensuel pour suivre vos dépenses.", fontSize = 13.sp, color = Slate500)
-                Spacer(modifier = Modifier.height(16.dp))
+                Text("Définissez un budget mensuel pour suivre vos dépenses.", style = MaterialTheme.typography.bodyMedium)
+                Spacer(modifier = Modifier.height(20.dp))
                 OutlinedTextField(
                     value = budgetText,
                     onValueChange = { budgetText = it.filter { c -> c.isDigit() || c == '.' } },
@@ -453,7 +450,7 @@ private fun BudgetSettingDialog(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 TextButton(onClick = { onSave(0.0) }) {
-                    Text("Supprimer la limite", fontSize = 12.sp, color = Danger)
+                    Text("Supprimer la limite", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
                 }
             }
         },
@@ -485,26 +482,28 @@ private fun ExportDateRangeDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Exporter par période", fontWeight = FontWeight.Bold) },
+        title = { Text("Exporter par période", style = MaterialTheme.typography.titleLarge) },
         text = {
             Column {
-                Text("Choisissez la période à exporter.", fontSize = 13.sp, color = Slate500)
-                Spacer(modifier = Modifier.height(16.dp))
+                Text("Choisissez la période à exporter.", style = MaterialTheme.typography.bodyMedium)
+                Spacer(modifier = Modifier.height(20.dp))
                 OutlinedButton(
                     onClick = { showStartPicker = true },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
-                    Icon(Icons.Default.CalendarMonth, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(Icons.Default.CalendarMonth, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(10.dp))
                     Text("Du : ${dateFormat.format(Date(startDate))}")
                 }
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(10.dp))
                 OutlinedButton(
                     onClick = { showEndPicker = true },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
-                    Icon(Icons.Default.CalendarMonth, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(Icons.Default.CalendarMonth, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(10.dp))
                     Text("Au : ${dateFormat.format(Date(endDate))}")
                 }
             }
@@ -565,49 +564,57 @@ private fun CategoryManagementDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Catégories", fontWeight = FontWeight.Bold) },
+        title = { Text("Catégories", style = MaterialTheme.typography.titleLarge) },
         text = {
             Column(modifier = Modifier.heightIn(max = 400.dp)) {
                 categories.sortedBy { it.name }.forEachIndexed { index, category ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 4.dp),
+                            .padding(vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(category.icon, fontSize = 18.sp)
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(category.icon, fontSize = 18.sp)
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
                         Text(
                             text = category.name,
-                            fontSize = 14.sp,
+                            style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Medium,
-                            color = if (category.isActive) MaterialTheme.colorScheme.onSurface else Slate400,
+                            color = if (category.isActive) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.weight(1f)
                         )
                         Switch(
                             checked = category.isActive,
                             onCheckedChange = { onToggleActive(category) },
                             colors = SwitchDefaults.colors(
-                                checkedTrackColor = Emerald600,
-                                uncheckedTrackColor = Slate200
+                                checkedTrackColor = MaterialTheme.colorScheme.primary,
+                                uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
                             )
                         )
                         if (category.name != "Autre") {
                             IconButton(
                                 onClick = { onDeleteCategory(category) },
-                                modifier = Modifier.size(36.dp)
+                                modifier = Modifier.size(40.dp)
                             ) {
                                 Icon(
                                     Icons.Default.Delete,
                                     contentDescription = "Supprimer ${category.name}",
-                                    tint = Slate400,
-                                    modifier = Modifier.size(18.dp)
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(20.dp)
                                 )
                             }
                         }
                     }
                     if (index < categories.size - 1) {
-                        HorizontalDivider(color = Slate100, thickness = 0.5.dp)
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f), thickness = 0.5.dp)
                     }
                 }
             }
@@ -619,10 +626,3 @@ private fun CategoryManagementDialog(
         }
     )
 }
-
-private val Blue50 = Color(0xFFEFF6FF)
-private val Blue600 = Color(0xFF2563EB)
-private val Purple50 = Color(0xFFF5F3FF)
-private val Purple600 = Color(0xFF7C3AED)
-// Revert the local rename and just delete them
-private val Red50 = Color(0xFFFEF2F2)

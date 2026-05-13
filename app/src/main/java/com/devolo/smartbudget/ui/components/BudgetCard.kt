@@ -32,14 +32,14 @@ fun BudgetCard(
     isOverBudget: Boolean = false,
     modifier: Modifier = Modifier
 ) {
-    val bgColor = if (isOverBudget) Danger else Emerald600
+    val bgColor = if (isOverBudget) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
     val bgGradientEnd = if (isOverBudget) Danger else Emerald500
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(28.dp),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = bgColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Box(
             modifier = Modifier
@@ -50,20 +50,21 @@ fun BudgetCard(
                     )
                 )
         ) {
+            // Decorative background element
             Box(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .offset(x = 20.dp, y = (-20).dp)
-                    .size(120.dp)
-                    .blur(50.dp)
+                    .offset(x = 30.dp, y = (-30).dp)
+                    .size(140.dp)
+                    .blur(60.dp)
                     .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.12f))
+                    .background(Color.White.copy(alpha = 0.15f))
             )
 
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 22.dp)
+                    .padding(24.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -73,106 +74,113 @@ fun BudgetCard(
                     Text(
                         text = "DÉPENSES TOTALES",
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color.White.copy(alpha = 0.75f),
+                        color = Color.White.copy(alpha = 0.8f),
                         letterSpacing = 1.sp
                     )
                     if (budgetLimit > 0) {
                         Text(
                             text = "${String.format(Locale.getDefault(), "%.0f", totalAmount)} / ${String.format(Locale.getDefault(), "%.0f", budgetLimit)} $currency",
-                            fontSize = 10.sp,
-                            color = Color.White.copy(alpha = 0.65f)
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.7f)
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 Row(
                     verticalAlignment = Alignment.Bottom
                 ) {
                     Text(
                         text = String.format(Locale.getDefault(), "%,.2f", totalAmount),
-                        fontSize = 30.sp,
+                        style = MaterialTheme.typography.displaySmall,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = currency,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Color.White.copy(alpha = 0.75f),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White.copy(alpha = 0.8f),
                         modifier = Modifier.padding(bottom = 4.dp)
                     )
                 }
 
                 if (budgetLimit > 0) {
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(6.dp)
-                            .clip(RoundedCornerShape(3.dp))
-                            .background(Color.White.copy(alpha = 0.25f))
+                            .clip(CircleShape)
+                            .background(Color.White.copy(alpha = 0.2f))
                     ) {
                         Box(
                             modifier = Modifier
-                                .fillMaxWidth(budgetProgress)
+                                .fillMaxWidth(budgetProgress.coerceIn(0f, 1f))
                                 .fillMaxHeight()
-                                .clip(RoundedCornerShape(3.dp))
+                                .clip(CircleShape)
                                 .background(Color.White)
                         )
                     }
                 }
 
-                if (previousTotal > 0) {
-                    val percentageChange = ((totalAmount - previousTotal) / previousTotal * 100).toInt()
-                    val isIncrease = percentageChange > 0
-                    val iconImage = if (isIncrease) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward
+                if (previousTotal > 0 || expenseCount > 0) {
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (previousTotal > 0) {
+                            val percentageChange = ((totalAmount - previousTotal) / previousTotal * 100).toInt()
+                            val isIncrease = percentageChange > 0
+                            val iconImage = if (isIncrease) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward
 
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Surface(
-                            color = Color.White.copy(alpha = 0.18f),
-                            shape = CircleShape,
-                            border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                            ) {
-                                Icon(
-                                    imageVector = iconImage,
-                                    contentDescription = if (isIncrease) "Augmentation" else "Diminution",
-                                    modifier = Modifier.size(12.dp),
-                                    tint = Color.White
-                                )
-                                Spacer(modifier = Modifier.width(3.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Surface(
+                                    color = Color.White.copy(alpha = 0.2f),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = iconImage,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(12.dp),
+                                            tint = Color.White
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text(
+                                            text = "${if (isIncrease) "+" else ""}$percentageChange%",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "${if (isIncrease) "+" else ""}$percentageChange%",
-                                    fontSize = 10.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
+                                    text = "vs mois dernier",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.White.copy(alpha = 0.7f)
                                 )
                             }
+                        } else {
+                            Box(modifier = Modifier.weight(1f))
                         }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "vs mois dernier",
-                            fontSize = 10.sp,
-                            color = Color.White.copy(alpha = 0.65f)
-                        )
-                    }
-                }
 
-                if (expenseCount > 0) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "$expenseCount dépense${if (expenseCount > 1) "s" else ""}",
-                        fontSize = 10.sp,
-                        color = Color.White.copy(alpha = 0.55f)
-                    )
+                        if (expenseCount > 0) {
+                            Text(
+                                text = "$expenseCount dépense${if (expenseCount > 1) "s" else ""}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.White.copy(alpha = 0.6f)
+                            )
+                        }
+                    }
                 }
             }
         }

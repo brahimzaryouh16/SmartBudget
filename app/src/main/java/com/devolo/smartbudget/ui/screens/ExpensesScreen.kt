@@ -73,60 +73,58 @@ fun ExpensesScreen(
                     .padding(horizontal = 20.dp)
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 12.dp),
+                            .padding(bottom = 16.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column {
                             Text(
                                 text = "Bonjour,",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = Slate400
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
                                 text = "SmartBudget",
-                                fontSize = 20.sp,
+                                style = MaterialTheme.typography.headlineLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onBackground
                             )
                         }
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             Surface(
-                                modifier = Modifier.size(42.dp),
-                                shape = RoundedCornerShape(14.dp),
-                                color = if (showSearch) Emerald100 else MaterialTheme.colorScheme.surface,
-                                border = if (showSearch) null else androidx.compose.foundation.BorderStroke(1.dp, Slate100),
-                                tonalElevation = 0.dp,
-                                shadowElevation = 1.dp
+                                modifier = Modifier.size(44.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                color = if (showSearch) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+                                shadowElevation = 0.5.dp
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
                                     IconButton(onClick = { showSearch = !showSearch }) {
                                         Icon(
                                             imageVector = Icons.Default.Search,
                                             contentDescription = "Rechercher",
-                                            modifier = Modifier.size(22.dp),
-                                            tint = if (showSearch) Emerald600 else Slate400
+                                            modifier = Modifier.size(24.dp),
+                                            tint = if (showSearch) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
                                 }
                             }
                             Surface(
-                                modifier = Modifier.size(42.dp),
-                                shape = RoundedCornerShape(14.dp),
-                                color = Emerald50
+                                modifier = Modifier.size(44.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                color = MaterialTheme.colorScheme.secondaryContainer,
+                                shadowElevation = 0.5.dp
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
                                     Icon(
                                         imageVector = Icons.Default.AccountBalanceWallet,
                                         contentDescription = "Portefeuille",
-                                        modifier = Modifier.size(22.dp),
-                                        tint = Emerald600
+                                        modifier = Modifier.size(24.dp),
+                                        tint = MaterialTheme.colorScheme.secondary
                                     )
                                 }
                             }
@@ -142,20 +140,20 @@ fun ExpensesScreen(
                             OutlinedTextField(
                                 value = searchQuery,
                                 onValueChange = { viewModel.setSearchQuery(it) },
-                                placeholder = { Text("Rechercher par note ou montant...", fontSize = 13.sp) },
-                                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(18.dp), tint = Slate400) },
+                                placeholder = { Text("Rechercher par note ou montant...", style = MaterialTheme.typography.bodyMedium) },
+                                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                                 trailingIcon = {
                                     if (searchQuery.isNotEmpty()) {
                                         IconButton(onClick = { viewModel.setSearchQuery("") }) {
-                                            Icon(Icons.Default.Close, contentDescription = "Effacer", modifier = Modifier.size(18.dp), tint = Slate400)
+                                            Icon(Icons.Default.Close, contentDescription = "Effacer", modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                                         }
                                     }
                                 },
-                                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-                                shape = RoundedCornerShape(16.dp),
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                                shape = RoundedCornerShape(14.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = Emerald600,
-                                    unfocusedBorderColor = Slate200,
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                                     focusedContainerColor = MaterialTheme.colorScheme.surface,
                                     unfocusedContainerColor = MaterialTheme.colorScheme.surface
                                 ),
@@ -170,7 +168,7 @@ fun ExpensesScreen(
                         onMonthChange = { viewModel.changeMonth(it) }
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(20.dp))
 
                     if (isLoading) {
                         ShimmerCard()
@@ -186,7 +184,7 @@ fun ExpensesScreen(
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -195,35 +193,36 @@ fun ExpensesScreen(
                     ) {
                         Text(
                             text = "Dépenses",
-                            fontSize = 14.sp,
+                            style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
-                            color = Slate700
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         TextButton(
                             onClick = { viewModel.toggleSort() },
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
                         ) {
                             Icon(
-                                imageVector = if (sortByDateDesc) Icons.Default.SortByAlpha else Icons.Default.AttachMoney,
+                                imageVector = if (sortByDateDesc) Icons.Default.Sort else Icons.Default.AttachMoney,
                                 contentDescription = "Trier",
-                                modifier = Modifier.size(16.dp),
-                                tint = Emerald600
+                                modifier = Modifier.size(18.dp),
+                                tint = MaterialTheme.colorScheme.primary
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = if (sortByDateDesc) "Date" else "Montant",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Emerald600
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary
                             )
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     if (isLoading) {
                         LazyRow(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
-                            contentPadding = PaddingValues(bottom = 4.dp)
+                            contentPadding = PaddingValues(bottom = 8.dp)
                         ) {
                             items(4) {
                                 ShimmerCategoryChip()
@@ -233,7 +232,7 @@ fun ExpensesScreen(
                         LazyRow(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
-                            contentPadding = PaddingValues(bottom = 4.dp)
+                            contentPadding = PaddingValues(bottom = 8.dp)
                         ) {
                             item {
                                 CategoryChip(
@@ -261,7 +260,7 @@ fun ExpensesScreen(
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(top = 8.dp, bottom = 88.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         items(5) {
                             ShimmerExpenseItem()
@@ -278,17 +277,16 @@ fun ExpensesScreen(
                             Icon(
                                 imageVector = Icons.Default.Inbox,
                                 contentDescription = null,
-                                modifier = Modifier.size(48.dp),
-                                tint = Slate300
+                                modifier = Modifier.size(64.dp),
+                                tint = MaterialTheme.colorScheme.outline
                             )
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
                             Text(
                                 text = if (searchQuery.isNotBlank()) "Aucun résultat pour \"$searchQuery\""
                                        else if (selectedCategoryId == null) "Aucune dépense ce mois-ci"
                                        else "Aucun résultat",
-                                color = Slate400,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center
                             )
                         }
@@ -297,7 +295,7 @@ fun ExpensesScreen(
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(top = 8.dp, bottom = 88.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         items(expenses, key = { it.id }) { expense ->
                             val category = categories.find { it.id == expense.categoryId }

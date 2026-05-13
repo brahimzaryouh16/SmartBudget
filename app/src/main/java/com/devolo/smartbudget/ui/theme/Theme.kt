@@ -10,26 +10,37 @@ import androidx.compose.ui.graphics.Color
 private val DarkColorScheme = darkColorScheme(
     primary = Primary,
     secondary = Secondary,
-    tertiary = Pink80,
-    background = Color(0xFF1E1E1E),
-    surface = Color(0xFF2D2D2D),
+    tertiary = Indigo500,
+    background = Color(0xFF0F172A), // Slate900
+    surface = Color(0xFF1E293B),    // Slate800
     onPrimary = Color.White,
     onSecondary = Color.White,
     onBackground = Color.White,
     onSurface = Color.White,
+    error = Danger,
+    outline = Slate700,
+    surfaceVariant = Slate800,
+    onSurfaceVariant = Slate300
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = Primary,
+    onPrimary = OnPrimary,
+    primaryContainer = Emerald100,
+    onPrimaryContainer = Emerald700,
     secondary = Secondary,
-    tertiary = Pink40,
+    onSecondary = OnSecondary,
+    secondaryContainer = Indigo50,
+    onSecondaryContainer = Indigo600,
     background = Background,
+    onBackground = OnSurface,
     surface = Surface,
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onBackground = TextPrimary,
-    onSurface = TextPrimary,
-    outlineVariant = Border
+    onSurface = OnSurface,
+    surfaceVariant = Slate100,
+    onSurfaceVariant = OnSurfaceVariant,
+    outline = Outline,
+    error = Danger,
+    onError = Color.White
 )
 
 @Composable
@@ -37,10 +48,7 @@ fun SmartBudgetTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
 
     MaterialTheme(
         colorScheme = colorScheme,
