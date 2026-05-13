@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -25,6 +26,7 @@ fun BudgetCard(
     totalAmount: Double,
     expenseCount: Int,
     currency: String = "MAD",
+    previousTotal: Double = 0.0,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -86,40 +88,46 @@ fun BudgetCard(
                     )
                 }
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(top = 16.dp)
-                ) {
-                    Surface(
-                        color = Color.White.copy(alpha = 0.2f),
-                        shape = CircleShape,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+                if (previousTotal > 0) {
+                    val percentageChange = if (previousTotal > 0) ((totalAmount - previousTotal) / previousTotal * 100).toInt() else 0
+                    val isIncrease = percentageChange > 0
+                    val iconImage = if (isIncrease) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(top = 16.dp)
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                        Surface(
+                            color = Color.White.copy(alpha = 0.2f),
+                            shape = CircleShape,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.ArrowUpward,
-                                contentDescription = null,
-                                modifier = Modifier.size(12.dp),
-                                tint = Color.White
-                            )
-                            Spacer(modifier = Modifier.width(2.dp))
-                            Text(
-                                text = "12%",
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                            ) {
+                                Icon(
+                                    imageVector = iconImage,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(12.dp),
+                                    tint = Color.White
+                                )
+                                Spacer(modifier = Modifier.width(2.dp))
+                                Text(
+                                    text = "${if (isIncrease) "+" else ""}$percentageChange%",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                            }
                         }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "vs mois dernier",
+                            fontSize = 10.sp,
+                            color = Color.White.copy(alpha = 0.7f)
+                        )
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "vs mois dernier",
-                        fontSize = 10.sp,
-                        color = Color.White.copy(alpha = 0.7f)
-                    )
                 }
             }
         }

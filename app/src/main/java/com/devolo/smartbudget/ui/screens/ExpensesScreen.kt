@@ -7,6 +7,8 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -36,6 +38,8 @@ fun ExpensesScreen(
     val totalAmount by viewModel.totalMonthAmount.collectAsState()
     val categories by viewModel.categories.collectAsState()
     val selectedCategoryId by viewModel.selectedCategoryId.collectAsState()
+    val previousTotal by viewModel.previousMonthTotal.collectAsState()
+    val sortByDateDesc by viewModel.sortByDateDesc.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.seedCategoriesIfEmpty()
@@ -94,16 +98,49 @@ fun ExpensesScreen(
 
         BudgetCard(
             totalAmount = totalAmount,
-            expenseCount = expenses.size
+            expenseCount = expenses.size,
+            previousTotal = previousTotal
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Sort & Filters
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Dépenses",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = Slate700
+            )
+            TextButton(
+                onClick = { viewModel.toggleSort() },
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+            ) {
+                Icon(
+                    imageVector = if (sortByDateDesc) Icons.Default.SortByAlpha else Icons.Default.AttachMoney,
+                    contentDescription = "Trier",
+                    modifier = Modifier.size(16.dp),
+                    tint = Emerald600
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = if (sortByDateDesc) "Date" else "Montant",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Emerald600
+                )
+            }
+        }
 
         // Filters
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(bottom = 16.dp)
+            contentPadding = PaddingValues(bottom = 8.dp)
         ) {
             item {
                 CategoryChip(

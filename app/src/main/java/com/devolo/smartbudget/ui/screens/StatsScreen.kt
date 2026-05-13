@@ -31,6 +31,7 @@ fun StatsScreen(viewModel: ExpenseViewModel) {
     val expenses by viewModel.filteredExpenses.collectAsState()
     val categories by viewModel.categories.collectAsState()
     val totalAmount by viewModel.totalMonthAmount.collectAsState()
+    val previousTotal by viewModel.previousMonthTotal.collectAsState()
 
     val categoryStats = categories.map { category ->
         val amount = expenses.filter { it.categoryId == category.id }.sumOf { it.amount }
@@ -75,7 +76,7 @@ fun StatsScreen(viewModel: ExpenseViewModel) {
             contentPadding = PaddingValues(bottom = 100.dp)
         ) {
             item {
-                ChartCard(totalAmount = totalAmount)
+                ChartCard(totalAmount = totalAmount, previousTotal = previousTotal)
             }
 
             item {
@@ -97,7 +98,12 @@ fun StatsScreen(viewModel: ExpenseViewModel) {
 }
 
 @Composable
-fun ChartCard(totalAmount: Double) {
+fun ChartCard(totalAmount: Double, previousTotal: Double = 0.0) {
+    val percentageChange = if (previousTotal > 0) ((totalAmount - previousTotal) / previousTotal * 100).toInt() else 0
+    val isIncrease = percentageChange > 0
+    val changeColor = if (isIncrease) Danger else Emerald600
+    val changeLabel = if (percentageChange == 0) "0%" else "${if (isIncrease) "+" else ""}$percentageChange%"
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(32.dp),
@@ -113,30 +119,32 @@ fun ChartCard(totalAmount: Double) {
             ) {
                 Column {
                     Text(
-                        text = "CETTE SEMAINE",
+                        text = "TOTAL DU MOIS",
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                         color = Slate400,
                         letterSpacing = 1.sp
                     )
                     Text(
-                        text = String.format(Locale.getDefault(), "%,.0f MAD", totalAmount / 4),
+                        text = String.format(Locale.getDefault(), "%,.0f MAD", totalAmount),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = Slate900
                     )
                 }
-                Surface(
-                    color = Emerald50,
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        text = "-14%",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Emerald600,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                    )
+                if (previousTotal > 0) {
+                    Surface(
+                        color = if (isIncrease) Danger.copy(alpha = 0.1f) else Emerald50,
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            text = changeLabel,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = changeColor,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
                 }
             }
 

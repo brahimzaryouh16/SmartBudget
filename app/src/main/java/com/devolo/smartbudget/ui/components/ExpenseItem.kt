@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,13 +28,29 @@ fun ExpenseItem(
     expense: Expense,
     category: Category?,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val dateFormat = SimpleDateFormat("dd MMM", Locale.getDefault())
     val categoryColor = if (category != null) {
-        try { Color(category.color.toColorInt()) } catch (e: Exception) { Color(0xFF64748B) }
+        try { Color(category.color.toColorInt()) } catch (_: Exception) { Color(0xFF64748B) }
     } else {
         Color(0xFF64748B)
+    }
+
+    val dateLabel = remember(expense.date) {
+        val cal = Calendar.getInstance()
+        val today = Calendar.getInstance()
+        cal.timeInMillis = expense.date
+
+        val yesterday = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -1) }
+
+        when {
+            (cal[Calendar.YEAR] == today[Calendar.YEAR]) &&
+                (cal[Calendar.DAY_OF_YEAR] == today[Calendar.DAY_OF_YEAR]) -> "Aujourd'hui"
+            (cal[Calendar.YEAR] == yesterday[Calendar.YEAR]) &&
+                (cal[Calendar.DAY_OF_YEAR] == yesterday[Calendar.DAY_OF_YEAR]) -> "Hier"
+            else -> dateFormat.format(Date(expense.date))
+        }
     }
 
     Surface(
@@ -58,9 +75,9 @@ fun ExpenseItem(
             ) {
                 Text(text = category?.icon ?: "❓", fontSize = 22.sp)
             }
-            
+
             Spacer(modifier = Modifier.width(16.dp))
-            
+
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = expense.note ?: category?.name ?: "Dépense",
@@ -71,13 +88,13 @@ fun ExpenseItem(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = "Aujourd'hui • ${category?.name ?: "Alimentation"}",
+                    text = "$dateLabel • ${category?.name ?: "Alimentation"}",
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Medium,
                     color = Slate400
                 )
             }
-            
+
             Text(
                 text = String.format(Locale.getDefault(), "-%.2f", expense.amount),
                 fontSize = 14.sp,

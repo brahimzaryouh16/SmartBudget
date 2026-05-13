@@ -34,6 +34,7 @@ import com.devolo.smartbudget.data.local.SmartBudgetDatabase
 import com.devolo.smartbudget.data.repository.BudgetRepository
 import com.devolo.smartbudget.ui.screens.AddEditExpenseScreen
 import com.devolo.smartbudget.ui.screens.ExpensesScreen
+import com.devolo.smartbudget.ui.screens.SettingsScreen
 import com.devolo.smartbudget.ui.screens.StatsScreen
 import com.devolo.smartbudget.ui.theme.*
 import com.devolo.smartbudget.ui.viewmodel.ExpenseViewModel
@@ -138,9 +139,7 @@ fun SmartBudgetApp() {
                 StatsScreen(viewModel = viewModel)
             }
             composable(Screen.Settings.route) {
-                Box(modifier = Modifier.fillMaxSize().background(Slate100).padding(24.dp)) {
-                    Text("Paramètres", style = MaterialTheme.typography.titleLarge)
-                }
+                SettingsScreen(viewModel = viewModel)
             }
             composable(
                 route = Screen.AddEditExpense.route,

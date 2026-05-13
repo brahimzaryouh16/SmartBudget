@@ -11,11 +11,26 @@ interface BudgetDao {
     @Query("SELECT * FROM categories WHERE isActive = 1")
     fun getAllCategories(): Flow<List<Category>>
 
+    @Query("SELECT * FROM categories")
+    fun getAllCategoriesIncludingInactive(): Flow<List<Category>>
+
+    @Query("SELECT * FROM categories WHERE id = :id")
+    suspend fun getCategoryById(id: Long): Category?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCategory(category: Category)
 
     @Update
     suspend fun updateCategory(category: Category)
+
+    @Query("DELETE FROM categories WHERE id = :id")
+    suspend fun deleteCategoryById(id: Long)
+
+    @Query("SELECT COUNT(*) FROM expenses WHERE categoryId = :categoryId")
+    suspend fun getExpenseCountForCategory(categoryId: Long): Int
+
+    @Query("UPDATE expenses SET categoryId = :newCategoryId WHERE categoryId = :oldCategoryId")
+    suspend fun reassignExpensesToCategory(oldCategoryId: Long, newCategoryId: Long)
 
     // Expenses
     @Query("SELECT * FROM expenses ORDER BY date DESC")
@@ -35,4 +50,13 @@ interface BudgetDao {
 
     @Query("SELECT * FROM expenses WHERE id = :id")
     suspend fun getExpenseById(id: Long): Expense?
+
+    @Query("SELECT * FROM expenses WHERE categoryId = :categoryId")
+    suspend fun getExpensesByCategoryId(categoryId: Long): List<Expense>
+
+    @Query("DELETE FROM expenses")
+    suspend fun deleteAllExpenses()
+
+    @Query("DELETE FROM categories")
+    suspend fun deleteAllCategories()
 }

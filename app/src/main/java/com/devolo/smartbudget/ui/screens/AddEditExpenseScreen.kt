@@ -50,6 +50,9 @@ fun AddEditExpenseScreen(
     var date by remember { mutableStateOf(System.currentTimeMillis()) }
 
     var existingExpense by remember { mutableStateOf<Expense?>(null) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var amountError by remember { mutableStateOf<String?>(null) }
+    var categoryError by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(expenseId) {
         if (expenseId != 0L) {
@@ -137,6 +140,16 @@ fun AddEditExpenseScreen(
                 )
             }
 
+            if (amountError != null) {
+                Text(
+                    text = amountError!!,
+                    color = Danger,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+
             Spacer(modifier = Modifier.height(32.dp))
 
             Column(modifier = Modifier.fillMaxWidth()) {
@@ -161,6 +174,15 @@ fun AddEditExpenseScreen(
                             onClick = { selectedCategoryId = category.id }
                         )
                     }
+                }
+                if (categoryError != null) {
+                    Text(
+                        text = categoryError!!,
+                        color = Danger,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
                 }
             }
 
@@ -212,15 +234,27 @@ fun AddEditExpenseScreen(
 
             Button(
                 onClick = {
+                    amountError = null
+                    categoryError = null
                     val amountValue = amount.replace(",", ".").toDoubleOrNull() ?: 0.0
-                    if (amountValue > 0 && selectedCategoryId != null) {
+                    var hasError = false
+                    if (amountValue <= 0) {
+                        amountError = "Le montant doit être strictement positif"
+                        hasError = true
+                    }
+                    if (selectedCategoryId == null) {
+                        categoryError = "Veuillez sélectionner une catégorie"
+                        hasError = true
+                    }
+                    if (!hasError) {
                         val expense = Expense(
                             id = expenseId,
                             amount = amountValue,
                             date = date,
                             categoryId = selectedCategoryId!!,
                             note = note,
-                            paymentMethod = paymentMethod
+                            paymentMethod = paymentMethod,
+                            createdAt = existingExpense?.createdAt ?: System.currentTimeMillis()
                         )
                         viewModel.saveExpense(expense)
                         onNavigateBack()
@@ -239,10 +273,7 @@ fun AddEditExpenseScreen(
             
             if (expenseId != 0L) {
                 TextButton(
-                    onClick = {
-                        existingExpense?.let { viewModel.deleteExpense(it) }
-                        onNavigateBack()
-                    },
+                    onClick = { showDeleteDialog = true },
                     modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
                     colors = ButtonDefaults.textButtonColors(contentColor = Color.Red.copy(alpha = 0.7f))
                 ) {
@@ -250,6 +281,31 @@ fun AddEditExpenseScreen(
                 }
             }
         }
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Confirmer la suppression", fontWeight = FontWeight.Bold) },
+            text = { Text("Voulez-vous vraiment supprimer cette dépense ? Cette action est irréversible.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        existingExpense?.let { viewModel.deleteExpense(it) }
+                        showDeleteDialog = false
+                        onNavigateBack()
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)
+                ) {
+                    Text("Supprimer", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Annuler")
+                }
+            }
+        )
     }
 }
 
