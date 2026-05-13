@@ -1,33 +1,38 @@
 package com.devolo.smartbudget.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.toColorInt
 import com.devolo.smartbudget.data.model.Category
 import com.devolo.smartbudget.data.model.Expense
+import com.devolo.smartbudget.ui.theme.*
 import com.devolo.smartbudget.ui.viewmodel.ExpenseViewModel
-import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import java.util.*
-
-import androidx.compose.ui.tooling.preview.Preview
-import com.devolo.smartbudget.ui.theme.SmartBudgetTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,9 +42,8 @@ fun AddEditExpenseScreen(
     onNavigateBack: () -> Unit
 ) {
     val categories by viewModel.categories.collectAsState()
-    val scope = rememberCoroutineScope()
 
-    var amount by remember { mutableStateOf("") }
+    var amount by remember { mutableStateOf("0.00") }
     var note by remember { mutableStateOf("") }
     var selectedCategoryId by remember { mutableStateOf<Long?>(null) }
     var paymentMethod by remember { mutableStateOf("Espèce") }
@@ -51,88 +55,156 @@ fun AddEditExpenseScreen(
         if (expenseId != 0L) {
             existingExpense = viewModel.getExpenseById(expenseId)
             existingExpense?.let {
-                amount = it.amount.toString()
+                amount = String.format(Locale.getDefault(), "%.2f", it.amount)
                 note = it.note ?: ""
                 selectedCategoryId = it.categoryId
                 paymentMethod = it.paymentMethod ?: "Espèce"
                 date = it.date
             }
+        } else if (categories.isNotEmpty()) {
+            selectedCategoryId = categories.first().id
         }
     }
 
     Scaffold(
+        containerColor = Color.White,
         topBar = {
-            TopAppBar(
-                title = { Text(if (expenseId == 0L) "Nouvelle dépense" else "Modifier la dépense") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Surface(
+                    modifier = Modifier.size(40.dp).clickable { onNavigateBack() },
+                    shape = RoundedCornerShape(12.dp),
+                    color = Slate50
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(Icons.Default.Close, contentDescription = "Close", tint = Slate400, modifier = Modifier.size(20.dp))
                     }
                 }
-            )
+                Text(
+                    text = if (expenseId == 0L) "Nouvelle dépense" else "Modifier",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Slate900
+                )
+                Box(modifier = Modifier.size(40.dp))
+            }
         }
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .padding(16.dp)
-                .fillMaxSize()
+                .padding(horizontal = 32.dp)
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Amount Input
-            OutlinedTextField(
-                value = amount,
-                onValueChange = { amount = it },
-                label = { Text("Montant") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                prefix = { Text("MAD ") }
+            Text(
+                text = "ENTREZ LE MONTANT",
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                color = Slate400,
+                letterSpacing = 1.sp
             )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Category Selection
-            Text("Catégorie *", style = MaterialTheme.typography.labelLarge)
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(4),
-                modifier = Modifier.height(200.dp),
-                contentPadding = PaddingValues(vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+            
+            Row(
+                modifier = Modifier.padding(vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
             ) {
-                items(categories) { category ->
-                    CategoryOption(
-                        category = category,
-                        isSelected = selectedCategoryId == category.id,
-                        onClick = { selectedCategoryId = category.id }
-                    )
+                Text(
+                    text = "MAD",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Slate300
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                BasicTextField(
+                    value = amount,
+                    onValueChange = { amount = it },
+                    textStyle = TextStyle(
+                        fontSize = 40.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Emerald600,
+                        textAlign = TextAlign.Center
+                    ),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    cursorBrush = SolidColor(Emerald600),
+                    modifier = Modifier.width(IntrinsicSize.Min).widthIn(min = 100.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "CATÉGORIE",
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Slate400,
+                    letterSpacing = 1.sp
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    modifier = Modifier.height(140.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(categories.take(4)) { category ->
+                        CategoryOption(
+                            category = category,
+                            isSelected = selectedCategoryId == category.id,
+                            onClick = { selectedCategoryId = category.id }
+                        )
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            // Note Input
-            OutlinedTextField(
-                value = note,
-                onValueChange = { note = it },
-                label = { Text("Note (optionnel)") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Payment Method
-            Text("Méthode de paiement", style = MaterialTheme.typography.labelLarge)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                listOf("Espèce", "Carte", "Virement").forEach { method ->
-                    FilterChip(
-                        selected = paymentMethod == method,
-                        onClick = { paymentMethod = method },
-                        label = { Text(method) },
-                        modifier = Modifier.weight(1f)
-                    )
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "DATE & NOTE",
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Slate400,
+                    letterSpacing = 1.sp
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Surface(
+                    color = Slate50,
+                    shape = RoundedCornerShape(24.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = Slate400, modifier = Modifier.size(20.dp))
+                            Spacer(modifier = Modifier.width(12.dp))
+                            val dateFormat = SimpleDateFormat("EEEE, d MMMM yyyy", Locale.FRANCE)
+                            Text(text = dateFormat.format(Date(date)).replaceFirstChar { it.uppercase() }, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Slate700)
+                        }
+                        Divider(modifier = Modifier.padding(vertical = 12.dp), color = Slate100)
+                        Row(verticalAlignment = Alignment.Top) {
+                            Icon(Icons.Default.Edit, contentDescription = null, tint = Slate400, modifier = Modifier.size(20.dp).padding(top = 2.dp))
+                            Spacer(modifier = Modifier.width(12.dp))
+                            BasicTextField(
+                                value = note,
+                                onValueChange = { note = it },
+                                textStyle = TextStyle(fontSize = 14.sp, color = Slate700),
+                                modifier = Modifier.fillMaxWidth().height(60.dp),
+                                decorationBox = { innerTextField ->
+                                    if (note.isEmpty()) {
+                                        Text("Ajouter une note facultative...", fontSize = 14.sp, color = Slate300)
+                                    }
+                                    innerTextField()
+                                }
+                            )
+                        }
+                    }
                 }
             }
 
@@ -140,7 +212,7 @@ fun AddEditExpenseScreen(
 
             Button(
                 onClick = {
-                    val amountValue = amount.toDoubleOrNull() ?: 0.0
+                    val amountValue = amount.replace(",", ".").toDoubleOrNull() ?: 0.0
                     if (amountValue > 0 && selectedCategoryId != null) {
                         val expense = Expense(
                             id = expenseId,
@@ -154,23 +226,27 @@ fun AddEditExpenseScreen(
                         onNavigateBack()
                     }
                 },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(64.dp)
+                    .padding(bottom = 8.dp),
+                shape = RoundedCornerShape(24.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Slate900),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
             ) {
-                Text("Enregistrer")
+                Text("Enregistrer la dépense", fontSize = 15.sp, fontWeight = FontWeight.Bold)
             }
             
             if (expenseId != 0L) {
-                Spacer(modifier = Modifier.height(8.dp))
                 TextButton(
                     onClick = {
                         existingExpense?.let { viewModel.deleteExpense(it) }
                         onNavigateBack()
                     },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                    colors = ButtonDefaults.textButtonColors(contentColor = Color.Red.copy(alpha = 0.7f))
                 ) {
-                    Text("Supprimer")
+                    Text("Supprimer cette dépense", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
         }
@@ -183,31 +259,43 @@ fun CategoryOption(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    val categoryColor = try { Color(android.graphics.Color.parseColor(category.color)) } catch (e: Exception) { Color.Gray }
-    
-    Column(
+    val bgColor = if (isSelected) Emerald50 else Slate50
+    val borderColor = if (isSelected) Emerald100 else Color.Transparent
+    val iconBgColor = if (isSelected) Emerald600 else Slate200
+    val textColor = if (isSelected) Emerald600 else Slate700
+    val iconTintColor = if (isSelected) Color.White else Slate500
+
+    Surface(
         modifier = Modifier
-            .border(
-                width = 2.dp,
-                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
-                shape = RoundedCornerShape(14.dp)
-            )
-            .background(
-                color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.08f) else Color.Transparent,
-                shape = RoundedCornerShape(14.dp)
-            )
-            .clickable { onClick() }
-            .padding(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .fillMaxWidth()
+            .clickable { onClick() },
+        shape = RoundedCornerShape(16.dp),
+        color = bgColor,
+        border = androidx.compose.foundation.BorderStroke(1.dp, borderColor)
     ) {
-        Text(text = category.icon, fontSize = 24.sp)
-        Text(
-            text = category.name,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.SemiBold,
-            maxLines = 1
-        )
+        Row(
+            modifier = Modifier.padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
+        ) {
+            Surface(
+                modifier = Modifier.size(32.dp),
+                shape = RoundedCornerShape(10.dp),
+                color = iconBgColor
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(text = category.icon, fontSize = 16.sp)
+                }
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = category.name,
+                fontSize = 13.sp,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold,
+                color = textColor,
+                maxLines = 1
+            )
+        }
     }
 }
 
@@ -215,46 +303,150 @@ fun CategoryOption(
 @Composable
 fun AddEditExpenseScreenPreview() {
     SmartBudgetTheme {
-        Column(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxSize()
-        ) {
-            OutlinedTextField(
-                value = "85.00",
-                onValueChange = {},
-                label = { Text("Montant") },
-                modifier = Modifier.fillMaxWidth(),
-                prefix = { Text("MAD ") }
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("Catégorie *", style = MaterialTheme.typography.labelLarge)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                CategoryOption(
-                    category = Category(name = "Alimentation", icon = "🍔", color = "#f59e0b"),
-                    isSelected = true,
-                    onClick = {}
-                )
-                CategoryOption(
-                    category = Category(name = "Transport", icon = "🚌", color = "#3b82f6"),
-                    isSelected = false,
-                    onClick = {}
-                )
+        val categories = listOf(
+            Category(id = 1, name = "Courses", icon = "🛒", color = "#10b981"),
+            Category(id = 2, name = "Transport", icon = "🚌", color = "#64748b"),
+            Category(id = 3, name = "Loisirs", icon = "🎬", color = "#8b5cf6"),
+            Category(id = 4, name = "Santé", icon = "🏥", color = "#ef4444")
+        )
+
+        Scaffold(
+            containerColor = Color.White,
+            topBar = {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        modifier = Modifier.size(40.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        color = Slate50
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(Icons.Default.Close, contentDescription = "Close", tint = Slate400, modifier = Modifier.size(20.dp))
+                        }
+                    }
+                    Text(
+                        text = "Nouvelle dépense",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Slate900
+                    )
+                    Box(modifier = Modifier.size(40.dp))
+                }
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(
-                value = "Déjeuner avec amis",
-                onValueChange = {},
-                label = { Text("Note (optionnel)") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = {},
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp)
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .padding(horizontal = 32.dp)
+                    .fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Enregistrer")
+                Text(
+                    text = "ENTREZ LE MONTANT",
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Slate400,
+                    letterSpacing = 1.sp
+                )
+                
+                Row(
+                    modifier = Modifier.padding(vertical = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "MAD",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Slate300
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "450.00",
+                        fontSize = 40.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Emerald600
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = "CATÉGORIE",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Slate400,
+                        letterSpacing = 1.sp
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        modifier = Modifier.height(140.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(categories) { category ->
+                            CategoryOption(
+                                category = category,
+                                isSelected = category.id == 1L,
+                                onClick = { }
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = "DATE & NOTE",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Slate400,
+                        letterSpacing = 1.sp
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Surface(
+                        color = Slate50,
+                        shape = RoundedCornerShape(24.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = Slate400, modifier = Modifier.size(20.dp))
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(text = "Mercredi, 13 Mai 2026", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Slate700)
+                            }
+                            Divider(modifier = Modifier.padding(vertical = 12.dp), color = Slate100)
+                            Row(verticalAlignment = Alignment.Top) {
+                                Icon(Icons.Default.Edit, contentDescription = null, tint = Slate400, modifier = Modifier.size(20.dp).padding(top = 2.dp))
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text("Courses Marjane", fontSize = 14.sp, color = Slate700)
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                Button(
+                    onClick = { },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(64.dp)
+                        .padding(bottom = 8.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Slate900),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
+                ) {
+                    Text("Enregistrer la dépense", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                }
             }
         }
     }

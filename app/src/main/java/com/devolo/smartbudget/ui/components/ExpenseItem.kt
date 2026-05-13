@@ -10,10 +10,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.toColorInt
 import com.devolo.smartbudget.data.model.Category
 import com.devolo.smartbudget.data.model.Expense
+import com.devolo.smartbudget.ui.theme.Slate400
+import com.devolo.smartbudget.ui.theme.Slate50
+import com.devolo.smartbudget.ui.theme.Slate900
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -26,61 +31,59 @@ fun ExpenseItem(
 ) {
     val dateFormat = SimpleDateFormat("dd MMM", Locale.getDefault())
     val categoryColor = if (category != null) {
-        try { Color(android.graphics.Color.parseColor(category.color)) } catch (e: Exception) { MaterialTheme.colorScheme.primary }
+        try { Color(category.color.toColorInt()) } catch (e: Exception) { Color(0xFF64748B) }
     } else {
-        MaterialTheme.colorScheme.primary
+        Color(0xFF64748B)
     }
 
-    Card(
+    Surface(
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
             .clickable { onClick() },
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        shape = RoundedCornerShape(24.dp),
+        color = Color.White,
+        border = androidx.compose.foundation.BorderStroke(1.dp, Slate50),
+        shadowElevation = 1.dp
     ) {
         Row(
-            modifier = Modifier.padding(14.dp),
+            modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(44.dp)
-                    .background(categoryColor.copy(alpha = 0.15f), RoundedCornerShape(12.dp)),
+                    .size(48.dp)
+                    .background(categoryColor.copy(alpha = 0.1f), RoundedCornerShape(16.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = category?.icon ?: "❓", fontSize = 20.sp)
+                Text(text = category?.icon ?: "❓", fontSize = 22.sp)
             }
             
-            Spacer(modifier = Modifier.width(14.dp))
+            Spacer(modifier = Modifier.width(16.dp))
             
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = expense.note ?: category?.name ?: "Dépense",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Slate900,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = "${category?.name ?: "Inconnu"} • ${dateFormat.format(Date(expense.date))} • ${expense.paymentMethod ?: "N/A"}",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = "Aujourd'hui • ${category?.name ?: "Alimentation"}",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Slate400
                 )
             }
             
-            Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = "${String.format("%.2f", expense.amount)}",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = expense.currency,
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            Text(
+                text = String.format(Locale.getDefault(), "-%.2f", expense.amount),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = Slate900
+            )
         }
     }
 }
