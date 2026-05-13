@@ -4,6 +4,8 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.res.painterResource
+import com.devolo.smartbudget.R
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
@@ -38,7 +40,7 @@ fun WelcomeScreen(onDismiss: () -> Unit) {
                     .padding(horizontal = 28.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.weight(0.7f))
+                Spacer(modifier = Modifier.weight(0.5f))
 
                 AnimatedVisibility(
                     visible = startAnimation,
@@ -47,44 +49,44 @@ fun WelcomeScreen(onDismiss: () -> Unit) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Surface(
                             modifier = Modifier
-                                .size(112.dp),
+                                .size(128.dp),
                             shape = RoundedCornerShape(32.dp),
                             color = MaterialTheme.colorScheme.primary,
                             shadowElevation = 4.dp
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
-                                    imageVector = Icons.Default.AccountBalanceWallet,
+                                    painter = painterResource(R.drawable.ic_launcher_foreground),
                                     contentDescription = null,
-                                    modifier = Modifier.size(56.dp),
+                                    modifier = Modifier.size(72.dp),
                                     tint = Color.White
                                 )
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(32.dp))
+                        Spacer(modifier = Modifier.height(20.dp))
 
                         Text(
                             text = "SmartBudget",
-                            style = MaterialTheme.typography.displayMedium,
+                            style = MaterialTheme.typography.displaySmall,
                             fontWeight = FontWeight.Black,
                             color = MaterialTheme.colorScheme.onBackground,
                             textAlign = TextAlign.Center
                         )
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
 
                         Text(
                             text = "Prenez le contrôle de vos finances\navec simplicité et élégance.",
-                            style = MaterialTheme.typography.bodyLarge,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center,
-                            lineHeight = 24.sp
+                            lineHeight = 20.sp
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(56.dp))
+                Spacer(modifier = Modifier.height(32.dp))
 
                 AnimatedVisibility(
                     visible = startAnimation,
@@ -93,7 +95,7 @@ fun WelcomeScreen(onDismiss: () -> Unit) {
                         initialOffsetY = { it / 3 }
                     )
                 ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         WelcomeFeatureCard(
                             icon = Icons.Default.BarChart,
                             title = "Suivi Intuitif",
@@ -128,7 +130,7 @@ fun WelcomeScreen(onDismiss: () -> Unit) {
                         onClick = onDismiss,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(60.dp),
+                            .height(52.dp),
                         shape = RoundedCornerShape(18.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.onSurface
@@ -154,7 +156,7 @@ fun WelcomeScreen(onDismiss: () -> Unit) {
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 AnimatedVisibility(
                     visible = startAnimation,
@@ -162,14 +164,14 @@ fun WelcomeScreen(onDismiss: () -> Unit) {
                 ) {
                     Text(
                         text = "100% Privé • Vos données restent locales",
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Medium
                     )
                 }
 
-                Spacer(modifier = Modifier.height(40.dp))
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }

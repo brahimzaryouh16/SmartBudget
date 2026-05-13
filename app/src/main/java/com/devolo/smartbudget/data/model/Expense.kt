@@ -25,8 +25,6 @@ data class Expense(
     val categoryId: Long,
     val note: String? = null,
     val paymentMethod: String? = null,
-    val isRecurring: Boolean = false,
-    val recurringInterval: String? = null, // mensuel, hebdomadaire, annuel
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 )

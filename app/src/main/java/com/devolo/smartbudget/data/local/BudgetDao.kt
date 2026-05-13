@@ -77,7 +77,4 @@ interface BudgetDao {
     @Query("DELETE FROM monthly_budgets WHERE month = :month AND categoryId = :categoryId")
     suspend fun deleteBudgetByMonthAndCategory(month: String, categoryId: Long)
 
-    // Recurring expenses
-    @Query("SELECT * FROM expenses WHERE isRecurring = 1")
-    suspend fun getRecurringExpenses(): List<Expense>
 }

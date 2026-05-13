@@ -85,7 +85,4 @@ class BudgetRepository(private val budgetDao: BudgetDao) : Repository {
         budgetDao.deleteBudgetByMonthAndCategory(month, categoryId)
     }
 
-    override suspend fun getRecurringExpenses(): List<Expense> {
-        return budgetDao.getRecurringExpenses()
-    }
 }

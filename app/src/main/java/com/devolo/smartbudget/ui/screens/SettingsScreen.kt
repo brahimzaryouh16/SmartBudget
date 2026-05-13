@@ -208,19 +208,6 @@ fun SettingsScreen(viewModel: ExpenseViewModel) {
 
             item {
                 SettingsClickableItem(
-                    icon = Icons.Default.Repeat,
-                    iconBg = Purple50,
-                    iconColor = Purple600,
-                    title = "Générer récurrences",
-                    subtitle = "Créer les dépenses récurrentes du mois suivant",
-                    onClick = {
-                        viewModel.generateRecurringExpenses()
-                    }
-                )
-            }
-
-            item {
-                SettingsClickableItem(
                     icon = Icons.Default.Storage,
                     iconBg = WarningLight,
                     iconColor = Warning,

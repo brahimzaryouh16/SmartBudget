@@ -3,7 +3,9 @@
 
     <style name="Theme.SmartBudget" parent="android:Theme.Material.Light.NoActionBar" />
 
-    <style name="Theme.SmartBudget.Splash" parent="Theme.SmartBudget">
-        <item name="android:windowBackground">@color/ic_launcher_background</item>
+    <style name="Theme.SmartBudget.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/ic_launcher_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.SmartBudget</item>
     </style>
 </resources>

@@ -137,9 +137,6 @@ class FakeBudgetRepository : Repository {
         budgetsMap.removeAll { it.month == month && it.categoryId == categoryId }
     }
 
-    override suspend fun getRecurringExpenses(): List<Expense> {
-        return expensesMap.filter { it.isRecurring }
-    }
 }
 
 class ExpenseViewModelTest {

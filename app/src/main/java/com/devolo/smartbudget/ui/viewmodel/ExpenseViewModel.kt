@@ -322,8 +322,8 @@ class ExpenseViewModel(private val repository: Repository) : ViewModel() {
 
                 val demoExpenses = listOf(
                     Expense(amount = 45.50, date = march + 86400000L * 2, categoryId = catMap["Alimentation"]?.id ?: 1, note = "Courses Marjane"),
-                    Expense(amount = 150.00, date = march + 86400000L * 3, categoryId = catMap["Transport"]?.id ?: 2, note = "Abonnement Bus mensuel", isRecurring = true, recurringInterval = "mensuel"),
-                    Expense(amount = 1200.00, date = march + 86400000L * 1, categoryId = catMap["Logement"]?.id ?: 3, note = "Loyer Mars", isRecurring = true, recurringInterval = "mensuel"),
+                    Expense(amount = 150.00, date = march + 86400000L * 3, categoryId = catMap["Transport"]?.id ?: 2, note = "Abonnement Bus mensuel"),
+                    Expense(amount = 1200.00, date = march + 86400000L * 1, categoryId = catMap["Logement"]?.id ?: 3, note = "Loyer Mars"),
                     Expense(amount = 85.00, date = march + 86400000L * 4, categoryId = catMap["Santé"]?.id ?: 4, note = "Pharmacie"),
                     Expense(amount = 65.00, date = march + 86400000L * 5, categoryId = catMap["Loisirs"]?.id ?: 5, note = "Ciné Atlas"),
                     Expense(amount = 200.00, date = march + 86400000L * 6, categoryId = catMap["Alimentation"]?.id ?: 1, note = "Marché de quartier"),
@@ -331,7 +331,7 @@ class ExpenseViewModel(private val repository: Repository) : ViewModel() {
                     Expense(amount = 50.00, date = march + 86400000L * 8, categoryId = catMap["Études"]?.id ?: 6, note = "Photocopies cours"),
                     Expense(amount = 320.00, date = march + 86400000L * 10, categoryId = catMap["Shopping"]?.id ?: 7, note = "Vêtements Zara"),
                     Expense(amount = 78.00, date = march + 86400000L * 12, categoryId = catMap["Alimentation"]?.id ?: 1, note = "Restaurant"),
-                    Expense(amount = 25.00, date = march + 86400000L * 14, categoryId = catMap["Loisirs"]?.id ?: 5, note = "Netflix", isRecurring = true, recurringInterval = "mensuel"),
+                    Expense(amount = 25.00, date = march + 86400000L * 14, categoryId = catMap["Loisirs"]?.id ?: 5, note = "Netflix"),
                     Expense(amount = 90.00, date = march + 86400000L * 15, categoryId = catMap["Transport"]?.id ?: 2, note = "Essence"),
                     Expense(amount = 55.00, date = march + 86400000L * 18, categoryId = catMap["Alimentation"]?.id ?: 1, note = "Café et pain"),
                     Expense(amount = 150.00, date = march + 86400000L * 20, categoryId = catMap["Études"]?.id ?: 6, note = "Livres"),
@@ -339,8 +339,8 @@ class ExpenseViewModel(private val repository: Repository) : ViewModel() {
                     Expense(amount = 180.00, date = march + 86400000L * 24, categoryId = catMap["Loisirs"]?.id ?: 5, note = "Sortie bowling"),
                     Expense(amount = 30.00, date = march + 86400000L * 26, categoryId = catMap["Autre"]?.id ?: 8, note = "Don caritatif"),
                     Expense(amount = 95.00, date = march + 86400000L * 28, categoryId = catMap["Alimentation"]?.id ?: 1, note = "Supermarché"),
-                    Expense(amount = 1200.00, date = april + 86400000L * 1, categoryId = catMap["Logement"]?.id ?: 3, note = "Loyer Avril", isRecurring = true, recurringInterval = "mensuel"),
-                    Expense(amount = 150.00, date = april + 86400000L * 3, categoryId = catMap["Transport"]?.id ?: 2, note = "Abonnement Bus", isRecurring = true, recurringInterval = "mensuel"),
+                    Expense(amount = 1200.00, date = april + 86400000L * 1, categoryId = catMap["Logement"]?.id ?: 3, note = "Loyer Avril"),
+                    Expense(amount = 150.00, date = april + 86400000L * 3, categoryId = catMap["Transport"]?.id ?: 2, note = "Abonnement Bus"),
                     Expense(amount = 52.00, date = april + 86400000L * 2, categoryId = catMap["Alimentation"]?.id ?: 1, note = "Courses Carrefour"),
                     Expense(amount = 70.00, date = april + 86400000L * 5, categoryId = catMap["Loisirs"]?.id ?: 5, note = "Théâtre"),
                     Expense(amount = 45.00, date = april + 86400000L * 6, categoryId = catMap["Transport"]?.id ?: 2, note = "Taxi aller-retour"),
@@ -348,7 +348,7 @@ class ExpenseViewModel(private val repository: Repository) : ViewModel() {
                     Expense(amount = 38.00, date = april + 86400000L * 10, categoryId = catMap["Alimentation"]?.id ?: 1, note = "Pizza"),
                     Expense(amount = 60.00, date = april + 86400000L * 11, categoryId = catMap["Études"]?.id ?: 6, note = "Fournitures"),
                     Expense(amount = 100.00, date = april + 86400000L * 12, categoryId = catMap["Santé"]?.id ?: 4, note = "Lunettes"),
-                    Expense(amount = 25.00, date = april + 86400000L * 14, categoryId = catMap["Loisirs"]?.id ?: 5, note = "Spotify", isRecurring = true, recurringInterval = "mensuel"),
+                    Expense(amount = 25.00, date = april + 86400000L * 14, categoryId = catMap["Loisirs"]?.id ?: 5, note = "Spotify"),
                     Expense(amount = 85.00, date = april + 86400000L * 16, categoryId = catMap["Alimentation"]?.id ?: 1, note = "Marché bio"),
                     Expense(amount = 40.00, date = april + 86400000L * 18, categoryId = catMap["Transport"]?.id ?: 2, note = "Tramway"),
                     Expense(amount = 75.00, date = april + 86400000L * 20, categoryId = catMap["Loisirs"]?.id ?: 5, note = "Piscine"),
@@ -427,45 +427,6 @@ class ExpenseViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    // Recurring: generate next month's recurring expenses
-    fun generateRecurringExpenses() {
-        viewModelScope.launch {
-            try {
-                val recurring = repository.getRecurringExpenses()
-                val nextMonth = (_currentMonth.value.clone() as Calendar).apply { add(Calendar.MONTH, 1) }
-                val startNext = getStartOfMonth(nextMonth)
-                val endNext = getEndOfMonth(nextMonth)
-
-                // Only generate for current-month recurring if next month doesn't have them
-                val nextMonthExisting = repository.allExpenses.first()
-                    .filter { it.date in startNext..endNext }
-                    .map { it.note to it.amount }
-
-                recurring.forEach { exp ->
-                    val alreadyExists = nextMonthExisting.any { it.first == exp.note && it.second == exp.amount }
-                    if (!alreadyExists) {
-                        // Shift date to same day of next month
-                        val srcCal = Calendar.getInstance().apply { timeInMillis = exp.date }
-                        val newCal = Calendar.getInstance()
-                        newCal.timeInMillis = startNext
-                        val dayOfMonth = srcCal.get(Calendar.DAY_OF_MONTH).coerceAtMost(newCal.getActualMaximum(Calendar.DAY_OF_MONTH))
-                        newCal.set(Calendar.DAY_OF_MONTH, dayOfMonth)
-
-                        repository.insertExpense(exp.copy(
-                            id = 0,
-                            date = newCal.timeInMillis,
-                            createdAt = System.currentTimeMillis(),
-                            updatedAt = System.currentTimeMillis()
-                        ))
-                    }
-                }
-                _uiEvent.emit(UiEvent.ShowSnackbar("Dépenses récurrentes générées"))
-            } catch (e: Exception) {
-                _uiEvent.emit(UiEvent.ShowSnackbar("Erreur lors de la génération"))
-            }
-        }
-    }
-
     fun importCsvContent(csvContent: String) {
         viewModelScope.launch {
             try {
@@ -519,21 +480,21 @@ class ExpenseViewModel(private val repository: Repository) : ViewModel() {
 
     fun buildCsvContent(): String {
         val sb = StringBuilder()
-        sb.appendLine("id,amount,currency,date,categoryId,note,paymentMethod,isRecurring,recurringInterval")
+        sb.appendLine("id,amount,currency,date,categoryId,note,paymentMethod")
         val expenses = filteredExpenses.value
         expenses.forEach { e ->
-            sb.appendLine("${e.id},${e.amount},${e.currency},${e.date},${e.categoryId},${e.note ?: ""},${e.paymentMethod ?: ""},${e.isRecurring},${e.recurringInterval ?: ""}")
+            sb.appendLine("${e.id},${e.amount},${e.currency},${e.date},${e.categoryId},${e.note ?: ""},${e.paymentMethod ?: ""}")
         }
         return sb.toString()
     }
 
     fun buildCsvContentForDateRangeSync(startDate: Long, endDate: Long): String {
         val sb = StringBuilder()
-        sb.appendLine("id,amount,currency,date,categoryId,note,paymentMethod,isRecurring,recurringInterval")
+        sb.appendLine("id,amount,currency,date,categoryId,note,paymentMethod")
         val expensesList = allExpenses.value
         val filtered = expensesList.filter { it.date in startDate..endDate }
         filtered.forEach { e ->
-            sb.appendLine("${e.id},${e.amount},${e.currency},${e.date},${e.categoryId},${e.note ?: ""},${e.paymentMethod ?: ""},${e.isRecurring},${e.recurringInterval ?: ""}")
+            sb.appendLine("${e.id},${e.amount},${e.currency},${e.date},${e.categoryId},${e.note ?: ""},${e.paymentMethod ?: ""}")
         }
         return sb.toString()
     }

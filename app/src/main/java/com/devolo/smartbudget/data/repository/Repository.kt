@@ -32,6 +32,4 @@ interface Repository {
     suspend fun deleteBudget(budget: MonthlyBudget)
     suspend fun deleteBudgetByMonthAndCategory(month: String, categoryId: Long)
 
-    // Recurring expenses
-    suspend fun getRecurringExpenses(): List<Expense>
 }
