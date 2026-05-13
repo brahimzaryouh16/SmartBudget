@@ -71,11 +71,6 @@ fun ExpensesScreen(
                     ) {
                         Column {
                             Text(
-                                text = "Bonjour,",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Text(
                                 text = "SmartBudget",
                                 style = MaterialTheme.typography.headlineLarge,
                                 fontWeight = FontWeight.Bold,

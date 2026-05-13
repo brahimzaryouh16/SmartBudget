@@ -2,6 +2,7 @@ package com.devolo.smartbudget.data.repository
 
 import com.devolo.smartbudget.data.model.Category
 import com.devolo.smartbudget.data.model.Expense
+import com.devolo.smartbudget.data.model.MonthlyBudget
 import kotlinx.coroutines.flow.Flow
 
 interface Repository {
@@ -23,4 +24,14 @@ interface Repository {
     suspend fun getExpenseById(id: Long): Expense?
     suspend fun deleteAllExpenses()
     suspend fun deleteAllCategories()
+
+    // Monthly Budgets
+    fun getBudgetsForMonth(month: String): Flow<List<MonthlyBudget>>
+    suspend fun getBudgetForMonthAndCategory(month: String, categoryId: Long): MonthlyBudget?
+    suspend fun insertBudget(budget: MonthlyBudget)
+    suspend fun deleteBudget(budget: MonthlyBudget)
+    suspend fun deleteBudgetByMonthAndCategory(month: String, categoryId: Long)
+
+    // Recurring expenses
+    suspend fun getRecurringExpenses(): List<Expense>
 }

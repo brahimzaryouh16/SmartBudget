@@ -56,6 +56,9 @@ fun AddEditExpenseScreen(
     var showDatePicker by remember { mutableStateOf(false) }
     var showUnsavedDialog by remember { mutableStateOf(false) }
     var showCategorySheet by remember { mutableStateOf(false) }
+    var paymentMethod by remember { mutableStateOf<String?>(null) }
+    var isRecurring by remember { mutableStateOf(false) }
+    var recurringInterval by remember { mutableStateOf<String?>(null) }
 
     val hasUnsavedChanges by remember {
         derivedStateOf {
@@ -84,6 +87,9 @@ fun AddEditExpenseScreen(
                 note = it.note ?: ""
                 selectedCategoryId = it.categoryId
                 date = it.date
+                paymentMethod = it.paymentMethod
+                isRecurring = it.isRecurring
+                recurringInterval = it.recurringInterval
             }
         } else if (categories.isNotEmpty()) {
             selectedCategoryId = categories.first().id
@@ -413,6 +419,78 @@ fun AddEditExpenseScreen(
                     }
                 }
 
+                Spacer(modifier = Modifier.height(36.dp))
+
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = "PAIEMENT & RÉCURRENCE",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        letterSpacing = 1.sp
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        shape = RoundedCornerShape(20.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(20.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.Payment, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                                Spacer(modifier = Modifier.width(16.dp))
+                                val paymentMethods = listOf("Espèces", "Carte", "Virement")
+                                val selectedMethod = paymentMethod ?: "Espèces"
+                                paymentMethods.forEachIndexed { index, method ->
+                                    FilterChip(
+                                        selected = selectedMethod == method,
+                                        onClick = { paymentMethod = if (paymentMethod == method) null else method },
+                                        label = { Text(method, style = MaterialTheme.typography.labelMedium) },
+                                        modifier = Modifier.padding(end = if (index < paymentMethods.size - 1) 8.dp else 0.dp),
+                                        shape = RoundedCornerShape(12.dp)
+                                    )
+                                }
+                            }
+                            HorizontalDivider(
+                                modifier = Modifier.padding(vertical = 16.dp),
+                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                                thickness = 0.5.dp
+                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.Repeat, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Text(
+                                    text = "Dépense récurrente",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Switch(
+                                    checked = isRecurring,
+                                    onCheckedChange = {
+                                        isRecurring = it
+                                        if (!it) recurringInterval = null
+                                    }
+                                )
+                            }
+                            if (isRecurring) {
+                                Spacer(modifier = Modifier.height(12.dp))
+                                val intervals = listOf("hebdomadaire", "mensuel", "annuel")
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    intervals.forEach { interval ->
+                                        FilterChip(
+                                            selected = recurringInterval == interval,
+                                            onClick = { recurringInterval = if (recurringInterval == interval) null else interval },
+                                            label = { Text(interval, style = MaterialTheme.typography.labelMedium) },
+                                            shape = RoundedCornerShape(12.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(32.dp))
             }
 
@@ -443,7 +521,9 @@ fun AddEditExpenseScreen(
                                 date = date,
                                 categoryId = selectedCategoryId ?: categories.first().id,
                                 note = note,
-                                paymentMethod = null,
+                                paymentMethod = paymentMethod,
+                                isRecurring = isRecurring,
+                                recurringInterval = if (isRecurring) (recurringInterval ?: "mensuel") else null,
                                 createdAt = existingExpense?.createdAt ?: System.currentTimeMillis()
                             )
                             viewModel.saveExpense(expense)

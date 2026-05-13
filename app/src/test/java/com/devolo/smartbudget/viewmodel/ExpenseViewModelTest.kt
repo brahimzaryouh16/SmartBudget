@@ -2,6 +2,7 @@ package com.devolo.smartbudget.viewmodel
 
 import com.devolo.smartbudget.data.model.Category
 import com.devolo.smartbudget.data.model.Expense
+import com.devolo.smartbudget.data.model.MonthlyBudget
 import com.devolo.smartbudget.data.repository.Repository
 import com.devolo.smartbudget.ui.viewmodel.ExpenseViewModel
 import kotlinx.coroutines.Dispatchers
@@ -107,6 +108,37 @@ class FakeBudgetRepository : Repository {
         return MutableStateFlow(
             expensesMap.filter { it.date in startDate..endDate }
         )
+    }
+
+    private val budgetsMap = mutableListOf<MonthlyBudget>()
+
+    override fun getBudgetsForMonth(month: String): Flow<List<MonthlyBudget>> {
+        return MutableStateFlow(budgetsMap.filter { it.month == month })
+    }
+
+    override suspend fun getBudgetForMonthAndCategory(month: String, categoryId: Long): MonthlyBudget? {
+        return budgetsMap.find { it.month == month && it.categoryId == categoryId }
+    }
+
+    override suspend fun insertBudget(budget: MonthlyBudget) {
+        val existing = budgetsMap.indexOfFirst { it.month == budget.month && it.categoryId == budget.categoryId }
+        if (existing >= 0) {
+            budgetsMap[existing] = budget
+        } else {
+            budgetsMap.add(budget)
+        }
+    }
+
+    override suspend fun deleteBudget(budget: MonthlyBudget) {
+        budgetsMap.removeAll { it.id == budget.id }
+    }
+
+    override suspend fun deleteBudgetByMonthAndCategory(month: String, categoryId: Long) {
+        budgetsMap.removeAll { it.month == month && it.categoryId == categoryId }
+    }
+
+    override suspend fun getRecurringExpenses(): List<Expense> {
+        return expensesMap.filter { it.isRecurring }
     }
 }
 

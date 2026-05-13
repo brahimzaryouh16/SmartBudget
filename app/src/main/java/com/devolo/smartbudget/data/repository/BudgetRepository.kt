@@ -3,6 +3,7 @@ package com.devolo.smartbudget.data.repository
 import com.devolo.smartbudget.data.local.BudgetDao
 import com.devolo.smartbudget.data.model.Category
 import com.devolo.smartbudget.data.model.Expense
+import com.devolo.smartbudget.data.model.MonthlyBudget
 import kotlinx.coroutines.flow.Flow
 
 class BudgetRepository(private val budgetDao: BudgetDao) : Repository {
@@ -62,5 +63,29 @@ class BudgetRepository(private val budgetDao: BudgetDao) : Repository {
 
     override suspend fun deleteAllCategories() {
         budgetDao.deleteAllCategories()
+    }
+
+    override fun getBudgetsForMonth(month: String): Flow<List<MonthlyBudget>> {
+        return budgetDao.getBudgetsForMonth(month)
+    }
+
+    override suspend fun getBudgetForMonthAndCategory(month: String, categoryId: Long): MonthlyBudget? {
+        return budgetDao.getBudgetForMonthAndCategory(month, categoryId)
+    }
+
+    override suspend fun insertBudget(budget: MonthlyBudget) {
+        budgetDao.insertBudget(budget)
+    }
+
+    override suspend fun deleteBudget(budget: MonthlyBudget) {
+        budgetDao.deleteBudget(budget)
+    }
+
+    override suspend fun deleteBudgetByMonthAndCategory(month: String, categoryId: Long) {
+        budgetDao.deleteBudgetByMonthAndCategory(month, categoryId)
+    }
+
+    override suspend fun getRecurringExpenses(): List<Expense> {
+        return budgetDao.getRecurringExpenses()
     }
 }

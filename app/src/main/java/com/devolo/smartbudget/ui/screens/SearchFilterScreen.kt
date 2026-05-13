@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.devolo.smartbudget.data.model.Expense
 import com.devolo.smartbudget.ui.components.CategoryChip
 import com.devolo.smartbudget.ui.components.ExpenseItem
 import com.devolo.smartbudget.ui.viewmodel.ExpenseViewModel
@@ -27,12 +28,28 @@ fun SearchFilterScreen(
     onEditExpense: (Long) -> Unit,
     onNavigateBack: () -> Unit
 ) {
-    val expenses by viewModel.filteredExpenses.collectAsState()
+    val allExpenses by viewModel.allExpenses.collectAsState()
     val categories by viewModel.categories.collectAsState()
-    val selectedCategoryId by viewModel.selectedCategoryId.collectAsState()
-    val sortByDateDesc by viewModel.sortByDateDesc.collectAsState()
-    val searchQuery by viewModel.searchQuery.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+
+    var localSearchQuery by remember { mutableStateOf("") }
+    var localSelectedCategoryId by remember { mutableStateOf<Long?>(null) }
+    var localSortByDateDesc by remember { mutableStateOf(true) }
+
+    val filteredExpenses = remember(allExpenses, localSearchQuery, localSelectedCategoryId, localSortByDateDesc) {
+        allExpenses
+            .filter { expense ->
+                val matchesCategory = localSelectedCategoryId == null || expense.categoryId == localSelectedCategoryId
+                val matchesSearch = localSearchQuery.isBlank() ||
+                    (expense.note?.contains(localSearchQuery, ignoreCase = true) == true) ||
+                    expense.amount.toString().contains(localSearchQuery, ignoreCase = true)
+                matchesCategory && matchesSearch
+            }
+            .let { list ->
+                if (localSortByDateDesc) list.sortedByDescending { it.date }
+                else list.sortedByDescending { it.amount }
+            }
+    }
 
     Column(
         modifier = Modifier
@@ -61,13 +78,13 @@ fun SearchFilterScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedTextField(
-            value = searchQuery,
-            onValueChange = { viewModel.setSearchQuery(it) },
+            value = localSearchQuery,
+            onValueChange = { localSearchQuery = it },
             placeholder = { Text("Rechercher par note ou montant...") },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
             trailingIcon = {
-                if (searchQuery.isNotEmpty()) {
-                    IconButton(onClick = { viewModel.setSearchQuery("") }) {
+                if (localSearchQuery.isNotEmpty()) {
+                    IconButton(onClick = { localSearchQuery = "" }) {
                         Icon(Icons.Default.Close, contentDescription = "Effacer")
                     }
                 }
@@ -90,15 +107,15 @@ fun SearchFilterScreen(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            TextButton(onClick = { viewModel.toggleSort() }) {
+            TextButton(onClick = { localSortByDateDesc = !localSortByDateDesc }) {
                 Icon(
-                    imageVector = if (sortByDateDesc) Icons.Default.Sort else Icons.Default.AttachMoney,
+                    imageVector = if (localSortByDateDesc) Icons.Default.Sort else Icons.Default.AttachMoney,
                     contentDescription = "Trier",
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = if (sortByDateDesc) "Date" else "Montant"
+                    text = if (localSortByDateDesc) "Date" else "Montant"
                 )
             }
         }
@@ -111,8 +128,8 @@ fun SearchFilterScreen(
             item {
                 CategoryChip(
                     name = "Toutes",
-                    isSelected = selectedCategoryId == null,
-                    onClick = { viewModel.selectCategory(null) }
+                    isSelected = localSelectedCategoryId == null,
+                    onClick = { localSelectedCategoryId = null }
                 )
             }
             items(categories) { category ->
@@ -121,8 +138,8 @@ fun SearchFilterScreen(
                 } catch (_: Exception) { null }
                 CategoryChip(
                     name = category.name,
-                    isSelected = selectedCategoryId == category.id,
-                    onClick = { viewModel.selectCategory(category.id) },
+                    isSelected = localSelectedCategoryId == category.id,
+                    onClick = { localSelectedCategoryId = category.id },
                     color = catColor
                 )
             }
@@ -130,7 +147,7 @@ fun SearchFilterScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        if (expenses.isEmpty()) {
+        if (filteredExpenses.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -144,7 +161,7 @@ fun SearchFilterScreen(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = if (searchQuery.isNotBlank()) "Aucun résultat pour \"$searchQuery\""
+                        text = if (localSearchQuery.isNotBlank()) "Aucun résultat pour \"$localSearchQuery\""
                                else "Aucune dépense",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -158,7 +175,7 @@ fun SearchFilterScreen(
                 contentPadding = PaddingValues(bottom = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(expenses, key = { it.id }) { expense ->
+                items(filteredExpenses, key = { it.id }) { expense ->
                     val category = categories.find { it.id == expense.categoryId }
                     ExpenseItem(
                         expense = expense,

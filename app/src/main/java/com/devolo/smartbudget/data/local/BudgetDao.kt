@@ -3,6 +3,7 @@ package com.devolo.smartbudget.data.local
 import androidx.room.*
 import com.devolo.smartbudget.data.model.Category
 import com.devolo.smartbudget.data.model.Expense
+import com.devolo.smartbudget.data.model.MonthlyBudget
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -59,4 +60,24 @@ interface BudgetDao {
 
     @Query("DELETE FROM categories")
     suspend fun deleteAllCategories()
+
+    // Monthly Budgets
+    @Query("SELECT * FROM monthly_budgets WHERE month = :month")
+    fun getBudgetsForMonth(month: String): Flow<List<MonthlyBudget>>
+
+    @Query("SELECT * FROM monthly_budgets WHERE month = :month AND categoryId = :categoryId")
+    suspend fun getBudgetForMonthAndCategory(month: String, categoryId: Long): MonthlyBudget?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertBudget(budget: MonthlyBudget)
+
+    @Delete
+    suspend fun deleteBudget(budget: MonthlyBudget)
+
+    @Query("DELETE FROM monthly_budgets WHERE month = :month AND categoryId = :categoryId")
+    suspend fun deleteBudgetByMonthAndCategory(month: String, categoryId: Long)
+
+    // Recurring expenses
+    @Query("SELECT * FROM expenses WHERE isRecurring = 1")
+    suspend fun getRecurringExpenses(): List<Expense>
 }

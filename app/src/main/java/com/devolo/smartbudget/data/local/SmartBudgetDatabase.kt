@@ -6,8 +6,9 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.devolo.smartbudget.data.model.Category
 import com.devolo.smartbudget.data.model.Expense
+import com.devolo.smartbudget.data.model.MonthlyBudget
 
-@Database(entities = [Category::class, Expense::class], version = 1, exportSchema = false)
+@Database(entities = [Category::class, Expense::class, MonthlyBudget::class], version = 2, exportSchema = false)
 abstract class SmartBudgetDatabase : RoomDatabase() {
     abstract fun budgetDao(): BudgetDao
 
