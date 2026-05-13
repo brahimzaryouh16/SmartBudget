@@ -146,11 +146,7 @@ fun StatsScreen(viewModel: ExpenseViewModel) {
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
-                                Text(
-                                    text = "Ajoutez des dépenses pour voir les analyses",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                                )
+                                
                             }
                         }
                     }

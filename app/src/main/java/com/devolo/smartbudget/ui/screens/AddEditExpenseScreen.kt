@@ -56,8 +56,6 @@ fun AddEditExpenseScreen(
     var showDatePicker by remember { mutableStateOf(false) }
     var showUnsavedDialog by remember { mutableStateOf(false) }
     var showCategorySheet by remember { mutableStateOf(false) }
-    var paymentMethod by remember { mutableStateOf<String?>(null) }
-
     val hasUnsavedChanges by remember {
         derivedStateOf {
             val isNew = expenseId == 0L
@@ -85,7 +83,6 @@ fun AddEditExpenseScreen(
                 note = it.note ?: ""
                 selectedCategoryId = it.categoryId
                 date = it.date
-                paymentMethod = it.paymentMethod
             }
         } else if (categories.isNotEmpty()) {
             selectedCategoryId = categories.first().id
@@ -180,33 +177,20 @@ fun AddEditExpenseScreen(
                     shape = RoundedCornerShape(20.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Row(
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 20.dp, vertical = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                            .padding(horizontal = 20.dp, vertical = 20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = MaterialTheme.colorScheme.primaryContainer
-                        ) {
-                            Text(
-                                text = currency,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(16.dp))
                         BasicTextField(
                             value = amount,
                             onValueChange = { sanitizeAmountInput(it, amount)?.let { amount = it } },
                             textStyle = TextStyle(
-                                fontSize = 36.sp,
+                                fontSize = 48.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface,
-                                textAlign = TextAlign.Start
+                                textAlign = TextAlign.Center
                             ),
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Decimal,
@@ -215,23 +199,29 @@ fun AddEditExpenseScreen(
                             keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
                             singleLine = true,
                             cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(vertical = 4.dp),
+                            modifier = Modifier.fillMaxWidth(),
                             decorationBox = { innerTextField ->
                                 if (amount.isEmpty()) {
                                     Text(
                                         text = "0,00",
                                         style = TextStyle(
-                                            fontSize = 36.sp,
+                                            fontSize = 48.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
-                                            textAlign = TextAlign.Start
+                                            textAlign = TextAlign.Center
                                         )
                                     )
                                 }
                                 innerTextField()
                             }
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = currency,
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            letterSpacing = 2.sp
                         )
                     }
                 }
@@ -415,42 +405,6 @@ fun AddEditExpenseScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(36.dp))
-
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        text = "PAIEMENT",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        letterSpacing = 1.sp
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Surface(
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                        shape = RoundedCornerShape(20.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(modifier = Modifier.padding(20.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Payment, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-                                Spacer(modifier = Modifier.width(16.dp))
-                                val paymentMethods = listOf("Espèces", "Carte", "Virement")
-                                val selectedMethod = paymentMethod ?: "Espèces"
-                                paymentMethods.forEachIndexed { index, method ->
-                                    FilterChip(
-                                        selected = selectedMethod == method,
-                                        onClick = { paymentMethod = if (paymentMethod == method) null else method },
-                                        label = { Text(method, style = MaterialTheme.typography.labelMedium) },
-                                        modifier = Modifier.padding(end = if (index < paymentMethods.size - 1) 8.dp else 0.dp),
-                                        shape = RoundedCornerShape(12.dp)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
                 Spacer(modifier = Modifier.height(32.dp))
             }
 
@@ -481,7 +435,6 @@ fun AddEditExpenseScreen(
                                 date = date,
                                 categoryId = selectedCategoryId ?: categories.first().id,
                                 note = note,
-                                paymentMethod = paymentMethod,
                                 createdAt = existingExpense?.createdAt ?: System.currentTimeMillis()
                             )
                             viewModel.saveExpense(expense)

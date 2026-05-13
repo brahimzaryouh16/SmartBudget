@@ -64,8 +64,8 @@ fun ExpenseItem(
             if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 onSwipeDelete?.invoke()
-                true
-            } else false
+            }
+            false
         }
     )
 
@@ -88,12 +88,23 @@ fun ExpenseItem(
                     .padding(end = 24.dp),
                 contentAlignment = Alignment.CenterEnd
             ) {
-                Icon(
-                    Icons.Default.Delete,
-                    contentDescription = "Supprimer",
-                    tint = Color.White,
-                    modifier = Modifier.size(24.dp)
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        text = "Supprimer",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = "Supprimer",
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
         },
         content = {

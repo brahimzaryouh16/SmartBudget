@@ -37,44 +37,44 @@ fun WelcomeScreen(onDismiss: () -> Unit) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 28.dp),
+                    .padding(horizontal = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.weight(0.5f))
+                Spacer(modifier = Modifier.weight(0.3f))
 
                 AnimatedVisibility(
                     visible = startAnimation,
-                    enter = fadeIn(tween(800)) + scaleIn(initialScale = 0.8f, animationSpec = tween(800, easing = FastOutSlowInEasing))
+                    enter = fadeIn(tween(800)) + scaleIn(initialScale = 0.9f, animationSpec = tween(800, easing = FastOutSlowInEasing))
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Surface(
                             modifier = Modifier
-                                .size(128.dp),
-                            shape = RoundedCornerShape(32.dp),
-                            color = MaterialTheme.colorScheme.primary,
+                                .size(120.dp),
+                            shape = RoundedCornerShape(28.dp),
+                            color = Color(0xFF059669),
                             shadowElevation = 4.dp
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
                                     painter = painterResource(R.drawable.ic_launcher_foreground),
                                     contentDescription = null,
-                                    modifier = Modifier.size(72.dp),
-                                    tint = Color.White
+                                    modifier = Modifier.size(80.dp),
+                                    tint = Color.Unspecified
                                 )
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(20.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
 
                         Text(
                             text = "SmartBudget",
-                            style = MaterialTheme.typography.displaySmall,
-                            fontWeight = FontWeight.Black,
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground,
                             textAlign = TextAlign.Center
                         )
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(6.dp))
 
                         Text(
                             text = "Prenez le contrôle de vos finances\navec simplicité et élégance.",
@@ -86,16 +86,16 @@ fun WelcomeScreen(onDismiss: () -> Unit) {
                     }
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
                 AnimatedVisibility(
                     visible = startAnimation,
                     enter = fadeIn(tween(1000, delayMillis = 300)) + slideInVertically(
                         animationSpec = tween(800, easing = FastOutSlowInEasing),
-                        initialOffsetY = { it / 3 }
+                        initialOffsetY = { it / 4 }
                     )
                 ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         WelcomeFeatureCard(
                             icon = Icons.Default.BarChart,
                             title = "Suivi Intuitif",
@@ -117,26 +117,26 @@ fun WelcomeScreen(onDismiss: () -> Unit) {
                     }
                 }
 
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.weight(0.7f))
 
                 AnimatedVisibility(
                     visible = startAnimation,
                     enter = fadeIn(tween(800, delayMillis = 600)) + slideInVertically(
                         animationSpec = tween(600, easing = FastOutSlowInEasing),
-                        initialOffsetY = { 100 }
+                        initialOffsetY = { 80 }
                     )
                 ) {
                     Button(
                         onClick = onDismiss,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(52.dp),
-                        shape = RoundedCornerShape(18.dp),
+                            .height(50.dp),
+                        shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.onSurface
                         ),
                         elevation = ButtonDefaults.buttonElevation(
-                            defaultElevation = 2.dp,
+                            defaultElevation = 1.5.dp,
                             pressedElevation = 0.dp
                         )
                     ) {
@@ -146,17 +146,17 @@ fun WelcomeScreen(onDismiss: () -> Unit) {
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.surface
                         )
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Spacer(modifier = Modifier.width(10.dp))
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                             contentDescription = null,
-                            modifier = Modifier.size(20.dp),
+                            modifier = Modifier.size(18.dp),
                             tint = MaterialTheme.colorScheme.surface
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 AnimatedVisibility(
                     visible = startAnimation,
@@ -171,7 +171,7 @@ fun WelcomeScreen(onDismiss: () -> Unit) {
                     )
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(20.dp))
             }
         }
     }

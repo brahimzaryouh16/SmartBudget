@@ -24,7 +24,6 @@ data class Expense(
     val date: Long, // Store as timestamp
     val categoryId: Long,
     val note: String? = null,
-    val paymentMethod: String? = null,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 )

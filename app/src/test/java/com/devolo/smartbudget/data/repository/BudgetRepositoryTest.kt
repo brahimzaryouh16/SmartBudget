@@ -25,8 +25,7 @@ class BudgetRepositoryTest {
             currency = "MAD",
             date = 1000000L,
             categoryId = 1,
-            note = "Test",
-            paymentMethod = null
+            note = "Test"
         )
         assertEquals(1, expense.id)
         assertEquals(150.0, expense.amount, 0.001)

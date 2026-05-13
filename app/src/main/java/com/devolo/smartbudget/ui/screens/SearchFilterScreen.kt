@@ -18,6 +18,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.devolo.smartbudget.data.model.Expense
 import com.devolo.smartbudget.ui.components.CategoryChip
+import com.devolo.smartbudget.ui.components.DeleteExpenseDialog
 import com.devolo.smartbudget.ui.components.ExpenseItem
 import com.devolo.smartbudget.ui.viewmodel.ExpenseViewModel
 
@@ -30,7 +31,10 @@ fun SearchFilterScreen(
 ) {
     val allExpenses by viewModel.allExpenses.collectAsState()
     val categories by viewModel.categories.collectAsState()
+    val currency by viewModel.currency.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+
+    var showDeleteConfirmDialog by remember { mutableStateOf<Long?>(null) }
 
     var localSearchQuery by remember { mutableStateOf("") }
     var localSelectedCategoryId by remember { mutableStateOf<Long?>(null) }
@@ -80,7 +84,7 @@ fun SearchFilterScreen(
         OutlinedTextField(
             value = localSearchQuery,
             onValueChange = { localSearchQuery = it },
-            placeholder = { Text("Rechercher par note ou montant...") },
+            placeholder = { Text("Type Recherche...", style = MaterialTheme.typography.bodySmall) },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
             trailingIcon = {
                 if (localSearchQuery.isNotEmpty()) {
@@ -181,10 +185,25 @@ fun SearchFilterScreen(
                         expense = expense,
                         category = category,
                         onClick = { onEditExpense(expense.id) },
-                        onSwipeDelete = { viewModel.deleteExpense(expense) }
+                        onSwipeDelete = { showDeleteConfirmDialog = expense.id }
                     )
                 }
             }
         }
+    }
+
+    showDeleteConfirmDialog?.let { expenseId ->
+        val expense = allExpenses.find { it.id == expenseId } ?: return@let
+        val category = categories.find { it.id == expense.categoryId }
+        DeleteExpenseDialog(
+            expense = expense,
+            category = category,
+            currency = currency,
+            onConfirm = {
+                viewModel.deleteExpense(expense)
+                showDeleteConfirmDialog = null
+            },
+            onDismiss = { showDeleteConfirmDialog = null }
+        )
     }
 }

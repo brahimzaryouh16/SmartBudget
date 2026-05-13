@@ -12,9 +12,12 @@ import androidx.compose.material3.pulltorefresh.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.devolo.smartbudget.R
 import com.devolo.smartbudget.ui.components.*
 import com.devolo.smartbudget.ui.viewmodel.ExpenseViewModel
 
@@ -36,6 +39,8 @@ fun ExpensesScreen(
     val budgetLimit by viewModel.monthlyBudget.collectAsState()
     val budgetProgress by viewModel.budgetProgress.collectAsState()
     val isOverBudget by viewModel.isOverBudget.collectAsState()
+
+    var showDeleteConfirmDialog by remember { mutableStateOf<Long?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.seedCategoriesIfEmpty()
@@ -69,28 +74,29 @@ fun ExpensesScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Surface(
+                                modifier = Modifier.size(48.dp),
+                                shape = RoundedCornerShape(14.dp),
+                                color = Color(0xFF059669),
+                                shadowElevation = 1.dp
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_launcher_foreground),
+                                        contentDescription = "Logo",
+                                        modifier = Modifier.size(44.dp),
+                                        tint = Color.Unspecified
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
                             Text(
                                 text = "SmartBudget",
                                 style = MaterialTheme.typography.headlineLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onBackground
                             )
-                        }
-                        Surface(
-                            modifier = Modifier.size(44.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            color = MaterialTheme.colorScheme.secondaryContainer,
-                            shadowElevation = 0.5.dp
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = Icons.Default.AccountBalanceWallet,
-                                    contentDescription = "Portefeuille",
-                                    modifier = Modifier.size(24.dp),
-                                    tint = MaterialTheme.colorScheme.secondary
-                                )
-                            }
                         }
                     }
 
@@ -189,14 +195,14 @@ fun ExpensesScreen(
                         contentPadding = PaddingValues(top = 8.dp, bottom = 88.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        items(expenses, key = { it.id }) { expense ->
+                        items(expenses.take(6), key = { it.id }) { expense ->
                             val category = categories.find { it.id == expense.categoryId }
                             ExpenseItem(
                                 expense = expense,
                                 category = category,
                                 onClick = { onEditExpense(expense.id) },
                                 onSwipeDelete = {
-                                    viewModel.deleteExpense(expense)
+                                    showDeleteConfirmDialog = expense.id
                                 }
                             )
                         }
@@ -204,5 +210,20 @@ fun ExpensesScreen(
                 }
             }
         }
+    }
+
+    showDeleteConfirmDialog?.let { expenseId ->
+        val expense = expenses.find { it.id == expenseId } ?: return@let
+        val category = categories.find { it.id == expense.categoryId }
+        DeleteExpenseDialog(
+            expense = expense,
+            category = category,
+            currency = currency,
+            onConfirm = {
+                viewModel.deleteExpense(expense)
+                showDeleteConfirmDialog = null
+            },
+            onDismiss = { showDeleteConfirmDialog = null }
+        )
     }
 }

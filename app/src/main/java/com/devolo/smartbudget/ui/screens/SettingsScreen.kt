@@ -122,7 +122,6 @@ fun SettingsScreen(viewModel: ExpenseViewModel) {
             verticalArrangement = Arrangement.spacedBy(10.dp),
             contentPadding = PaddingValues(bottom = 88.dp)
         ) {
-            item { ProfileSection() }
 
             item { SectionHeader(title = "GÉNÉRAL") }
 
@@ -371,35 +370,6 @@ fun SettingsScreen(viewModel: ExpenseViewModel) {
     }
 }
 
-@Composable
-private fun ProfileSection() {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 0.5.dp
-    ) {
-        Row(
-            modifier = Modifier.padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Surface(
-                modifier = Modifier.size(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.primary
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text("SB", style = MaterialTheme.typography.headlineSmall, color = Color.White)
-                }
-            }
-            Spacer(modifier = Modifier.width(20.dp))
-            Column {
-                Text("SmartBudget", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
-                Text("Gestion de budget personnel", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
-    }
-}
 
 @Composable
 private fun SectionHeader(title: String) {

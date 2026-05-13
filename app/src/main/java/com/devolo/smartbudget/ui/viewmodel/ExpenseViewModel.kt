@@ -264,8 +264,20 @@ class ExpenseViewModel(private val repository: Repository) : ViewModel() {
             try {
                 repository.deleteAllExpenses()
                 repository.deleteAllCategories()
-                seedCategoriesIfEmpty()
-                _uiEvent.emit(UiEvent.ShowSnackbar("Données réinitialisées"))
+
+                val defaultCategories = listOf(
+                    Category(name = "Alimentation", icon = "\uD83C\uDF54", color = "#f59e0b"),
+                    Category(name = "Transport", icon = "\uD83D\uDE8C", color = "#3b82f6"),
+                    Category(name = "Logement", icon = "\uD83C\uDFE0", color = "#8b5cf6"),
+                    Category(name = "Santé", icon = "\uD83D\uDC8A", color = "#ef4444"),
+                    Category(name = "Loisirs", icon = "\uD83C\uDFAC", color = "#10b981"),
+                    Category(name = "Études", icon = "\uD83D\uDCDA", color = "#6366f1"),
+                    Category(name = "Shopping", icon = "\uD83D\uDECD\uFE0F", color = "#ec4899"),
+                    Category(name = "Autre", icon = "\uD83D\uDCE6", color = "#94a3b8")
+                )
+                defaultCategories.forEach { repository.insertCategory(it) }
+
+                _uiEvent.emit(UiEvent.ShowOnboarding)
             } catch (e: Exception) {
                 _uiEvent.emit(UiEvent.ShowSnackbar("Erreur lors de la réinitialisation"))
             }
@@ -438,16 +450,17 @@ class ExpenseViewModel(private val repository: Repository) : ViewModel() {
                 val header = lines.first().split(",").map { it.trim().lowercase() }
                 val amountIdx = header.indexOf("amount")
                 val dateIdx = header.indexOf("date")
-                val categoryNameIdx = header.indexOf("category")
+                val categoryIdx = header.indexOf("category")
+                val categoryIdIdx = header.indexOf("categoryid")
                 val noteIdx = header.indexOf("note")
-                val paymentIdx = header.indexOf("paymentmethod")
-
                 if (amountIdx < 0 || dateIdx < 0) {
                     _uiEvent.emit(UiEvent.ShowSnackbar("Colonnes amount et date requises"))
                     return@launch
                 }
 
                 val cats = categories.value
+                val catByName = cats.associateBy { it.name.lowercase() }
+                val catById = cats.associateBy { it.id }
                 val defaultCat = cats.firstOrNull()?.id ?: return@launch
 
                 var imported = 0
@@ -455,19 +468,25 @@ class ExpenseViewModel(private val repository: Repository) : ViewModel() {
                     val cols = line.split(",").map { it.trim() }
                     val amount = cols.getOrNull(amountIdx)?.toDoubleOrNull() ?: return@forEach
                     val date = cols.getOrNull(dateIdx)?.toLongOrNull() ?: return@forEach
-                    val categoryName = if (categoryNameIdx >= 0) cols.getOrNull(categoryNameIdx) else null
                     val note = if (noteIdx >= 0) cols.getOrNull(noteIdx) else null
-                    val paymentMethod = if (paymentIdx >= 0) cols.getOrNull(paymentIdx) else null
-                    val categoryId = if (categoryName != null) {
-                        cats.find { it.name.equals(categoryName, ignoreCase = true) }?.id ?: defaultCat
-                    } else defaultCat
+
+                    val categoryId = when {
+                        categoryIdx >= 0 -> {
+                            val name = cols.getOrNull(categoryIdx) ?: ""
+                            catByName[name.lowercase()]?.id ?: defaultCat
+                        }
+                        categoryIdIdx >= 0 -> {
+                            val id = cols.getOrNull(categoryIdIdx)?.toLongOrNull()
+                            id?.let { catById[it]?.id } ?: defaultCat
+                        }
+                        else -> defaultCat
+                    }
 
                     repository.insertExpense(Expense(
                         amount = amount,
                         date = date,
                         categoryId = categoryId,
-                        note = note?.ifBlank { null },
-                        paymentMethod = paymentMethod?.ifBlank { null }
+                        note = note?.ifBlank { null }
                     ))
                     imported++
                 }
@@ -480,21 +499,25 @@ class ExpenseViewModel(private val repository: Repository) : ViewModel() {
 
     fun buildCsvContent(): String {
         val sb = StringBuilder()
-        sb.appendLine("id,amount,currency,date,categoryId,note,paymentMethod")
+        sb.appendLine("id,amount,currency,date,category,note")
+        val catMap = categories.value.associateBy { it.id }
         val expenses = filteredExpenses.value
         expenses.forEach { e ->
-            sb.appendLine("${e.id},${e.amount},${e.currency},${e.date},${e.categoryId},${e.note ?: ""},${e.paymentMethod ?: ""}")
+            val catName = catMap[e.categoryId]?.name ?: ""
+            sb.appendLine("${e.id},${e.amount},${e.currency},${e.date},$catName,${e.note ?: ""}")
         }
         return sb.toString()
     }
 
     fun buildCsvContentForDateRangeSync(startDate: Long, endDate: Long): String {
         val sb = StringBuilder()
-        sb.appendLine("id,amount,currency,date,categoryId,note,paymentMethod")
+        sb.appendLine("id,amount,currency,date,category,note")
+        val catMap = categories.value.associateBy { it.id }
         val expensesList = allExpenses.value
         val filtered = expensesList.filter { it.date in startDate..endDate }
         filtered.forEach { e ->
-            sb.appendLine("${e.id},${e.amount},${e.currency},${e.date},${e.categoryId},${e.note ?: ""},${e.paymentMethod ?: ""}")
+            val catName = catMap[e.categoryId]?.name ?: ""
+            sb.appendLine("${e.id},${e.amount},${e.currency},${e.date},$catName,${e.note ?: ""}")
         }
         return sb.toString()
     }

@@ -106,6 +106,9 @@ fun SmartBudgetApp() {
                         )
                     }
                 }
+                is UiEvent.ShowOnboarding -> {
+                    showOnboarding = true
+                }
             }
         }
     }
@@ -229,6 +232,15 @@ fun SmartBudgetApp() {
     }
 
     if (showOnboarding) {
-        WelcomeScreen(onDismiss = { showOnboarding = false })
+        WelcomeScreen(onDismiss = {
+            showOnboarding = false
+            navController.navigate(Screen.Expenses.route) {
+                popUpTo(navController.graph.findStartDestination().id) {
+                    saveState = false
+                }
+                launchSingleTop = true
+                restoreState = false
+            }
+        })
     }
 }
